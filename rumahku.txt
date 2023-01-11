@@ -1,0 +1,15 @@
+# Netscape HTTP Cookie File
+# http://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file!  Do not edit.
+
+.rumahku.com	TRUE	/	FALSE	1684679957	_ga	GA1.2.1948040129.1618821749
+www.rumahku.com	FALSE	/	TRUE	1622212431	RumahkuV2	cc796f1c6afd6807185ee033362b2ff5
+.rumahku.com	TRUE	/	FALSE	1684679634	__utma	146098103.1948040129.1618821749.1621607634.1621607634.1
+.rumahku.com	TRUE	/	FALSE	0	__utmc	146098103
+.rumahku.com	TRUE	/	FALSE	1637375634	__utmz	146098103.1621607634.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)
+.rumahku.com	TRUE	/	FALSE	1621608234	__utmt	1
+.rumahku.com	TRUE	/	FALSE	1621609434	__utmb	146098103.1.10.1621607634
+.rumahku.com	TRUE	/	FALSE	1621694357	_gid	GA1.2.1812860682.1621607634
+.rumahku.com	TRUE	/	TRUE	1621609438	__cf_bm	88d27d775f5218b674eac40ab0e6b7c561f13f5c-1621607634-1800-AR4fbN8wlDWwJwSOhCELavkYK/wbiS4C+vyWJMrljIkGSXOJpvt/dfEh0GATLQbp9zd12z6kI9zSRZqpteKLa8EgAiejl/wDbh67CJsrLoYwTg32CQlOfLDeXxuG+AMdmA==
+www.rumahku.com	FALSE	/	FALSE	1621622299	CakeCookie[Guest]	%7B%22Lead%22%3A%7B%22Property%22%3A%7B%221385228%22%3A%7B%22%22%3Atrue%7D%7D%7D%2C%22Data%22%3A%7B%22name%22%3A%22Joni+Sura%22%2C%22email%22%3A%22ghostinbooks%40gmail.com%22%2C%22phone%22%3A%22085922112211%22%7D%7D
+.rumahku.com	TRUE	/	FALSE	1621608006	_gat	1

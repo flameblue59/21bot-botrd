@@ -1,0 +1,3 @@
+[submodule "tiktokpy"]
+	path = tiktokpy
+	url = https://github.com/sudoguy/tiktokpy
