@@ -17,11 +17,11 @@ import time
 class tool:
     def getPhoto(email,path):
         #randomize image
-        dir = tool.instagramPath(path)
+        dir = tool.twitterPath(path)
         listImage = os.listdir(dir)
         #check for uniqueness
         mycursor = myConn.mydb.cursor(dictionary=True)
-        sql = "SELECT filename FROM posted_instagram_image WHERE email=%s"
+        sql = "SELECT filename FROM posted_twitter_image WHERE email=%s"
         val = [email]
         mycursor.execute(sql,val)
         result = mycursor.fetchall()
@@ -33,14 +33,14 @@ class tool:
         return dir+''+filename,filename     
     def getStatus(category,language):
         mycursor = myConn.mydb.cursor(dictionary=True)
-        sql = "SELECT text FROM instagram_status WHERE category=%s and language=%s ORDER BY RAND()"
+        sql = "SELECT text FROM input_status WHERE category=%s and language=%s ORDER BY RAND()"
         val = [category,language]
         mycursor.execute(sql,val)
         result = mycursor.fetchall()
         return result[0]['text']
     def getComment(category,language):
         mycursor = myConn.mydb.cursor(dictionary=True)
-        sql = "SELECT text FROM instagram_comment WHERE category=%s and language=%s ORDER BY RAND()"
+        sql = "SELECT text FROM input_comment WHERE category=%s and language=%s ORDER BY RAND()"
         val = [category,language]
         mycursor.execute(sql,val)
         result = mycursor.fetchall()
@@ -59,12 +59,12 @@ class tool:
         mycursor.execute(sql)
         result = mycursor.fetchall()
         return result[0]['value']
-    def instagramPath(path):
+    def twitterPath(path):
         mycursor = myConn.mydb.cursor(dictionary=True)
         sql = "SELECT value FROM settings WHERE type='filePath'"
         mycursor.execute(sql)
         result = mycursor.fetchall()
-        return result[0]['value']+'instagram/'+path+'/'
+        return result[0]['value']+'twitter/'+path+'/'
     #to scroll down
     def scrollDown(driver):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")  
@@ -86,14 +86,3 @@ class tool:
             if new_height == last_height:
                 break
             last_height = new_height 
-            
-    #to scroll following dialog
-    def scrollFollowingDown(driver):
-        elem = "//div[@role='dialog']/div/div/div[3]/div[1]"
-        try:
-            WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
-        except:
-            print('kesalahan webdriver following down')
-        else:
-            scroll = driver.find_element(By.XPATH,elem)
-            driver.execute_script("arguments[0].scroll(0, arguments[0].scrollHeight);", scroll)

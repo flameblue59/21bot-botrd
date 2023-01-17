@@ -294,6 +294,101 @@ class getValue{
 		$process->close();
 		return $arrResult;
 	}		
+	function twitterAccount(
+		Array $arrData = [],
+		$arrField = array(
+			'id'=>'id',
+			'email'=>'email',
+			'password'=>'password',
+			'proxy'=>'proxy',
+			'tweet'=>'tweet',
+			'maxTweet'=>'maxTweet',
+			'retweet'=>'retweet',
+			'maxRetweet'=>'maxRetweet',
+			'likes'=>'likes',
+			'maxLikes'=>'maxLikes',
+			'comment'=>'comment',
+			'maxComment'=>'maxComment',
+			'follow'=>'follow',
+			'maxFollow'=>'maxFollow',
+			'unfollow'=>'unfollow',
+			'maxUnfollow'=>'maxUnfollow',
+			'tweetInterval'=>'tweetInterval',
+			'likesInterval'=>'likesInterval',
+			'commentInterval'=>'commentInterval',
+			'commentInterval'=>'commentInterval',
+			'followInterval'=>'followInterval',
+			'unfollowInterval'=>'unfollowInterval',
+			'restInterval'=>'restInterval',
+			'nextRun'=>'nextRun',
+			'waktu'=>'waktu'
+		)
+	){
+		global $conn;
+		$getValue = new getValue();
+		$tool = new tool();
+		$waktu = $tool->getTime("Y-m-d H:i:s",'');
+		$order = "ORDER BY waktu ASC";
+		$identifier = 'id';
+		$group = '';
+		$arrResult = array();
+		if(is_array($arrData)){
+			foreach($arrData as $key=>$value){
+				${$key} = $value;
+			}
+		}
+		//bind param
+		$bind = 's';
+		$params = array();
+		$query = array();
+		$arrJson = array();
+		$field = $arrField;
+		$arrFilter = array('email','password','proxy');
+		foreach($arrFilter as $value){
+			if(ISSET(${$value})){
+				$bind .= 's';
+				$params[] = ${$value};
+				$query[] = "$value=?";
+			}
+		}
+		if(count($params) > 0){
+			array_unshift($params,$bind);
+			$params = $tool->refValues($params);
+			$query = "WHERE ".implode(' and ',$query);
+		}
+		else{
+			$query = '';
+		}
+		//get pinterest list
+		$queryResult = implode(',',$field);
+		$sql = "SELECT $queryResult FROM twitter_account $query $group $order";
+		$process = $conn->prepare($sql);
+		if(count($params) > 0){
+			call_user_func_array(array($process,'bind_param'),$params);
+		}
+		$process->execute();
+		$process->store_result();
+		if($process->num_rows > 0){
+			$result = array();
+			$meta = $process->result_metadata();
+			while($field = $meta->fetch_field()){
+				$result[] = &$row[$field->name];
+			}
+			call_user_func_array(array($process,'bind_result'),$result);
+			while($process->fetch()){
+				$arr = array();
+				foreach($arrField as $type=>$value){
+					$arr[$type] = $row[$type];
+					if(in_array($type,$arrJson)){
+						$arr[$type] = json_decode($row[$type],true);
+					}
+				}
+				$arrResult[$row[$identifier]] = $arr;
+			}
+		}
+		$process->close();
+		return $arrResult;
+	}			
 }
 
 class bot{
@@ -1803,6 +1898,158 @@ class botInstagram{
 		$nextReset->modify('+1 day');
 		$nextReset = $nextReset->format("Y-m-d H:i:s");
 		$sql = "UPDATE settings SET value=? WHERE type='instagramReset'";
+		$process = $conn->prepare($sql);
+		$process->bind_param('s',$nextReset);
+		$process->execute();
+		$process->close();
+		return array('status'=>'success','notification'=>getStr('strsend',array('build activity')));
+	}
+	function resetAccount(
+		Array $arrData = []
+	){
+		global $conn;
+		$sql = "UPDATE instagram_account SET 
+		maxPost=1,
+		maxLikes=20,
+		maxComment=4,
+		maxFollow=40,
+		maxUnfollow=20";
+		$process = $conn->prepare($sql);
+		$process->execute();
+		$process->close();
+		return array('status'=>'success','notification'=>'berhasil reset account Instagram');		
+	}
+}
+
+class botTwitter{
+	function twitter(
+		Array $arrData = []
+	){
+		global $conn;
+		$getValue = new getValue();
+		$tool = new tool();
+		//build activity
+		$status = $this->buildDailyActivity();
+		$pyCommand = $getValue->settings('pyCommand');
+		$localhostPath = $getValue->settings('localhostPath');
+		$command = "$pyCommand $localhostPath"."twitter/twitter.py";
+		$command = escapeshellcmd($command);
+		$output = shell_exec($command);
+		$output = trim($output);
+		$body = 'Selesai: '.$output;
+		$script = "<script>
+		setTimeout(function(){
+			window.location.reload();
+			setTimeout(function(){
+				window.location.reload();
+			},3600000);
+		},3000);
+		</script>";
+		$body .= '['.$status['notification'].']';
+		echo $body.$script;
+	}	
+	function buildDailyActivity(
+		Array $arrData = []
+	){
+		global $conn;
+		$getValue = new getValue();
+		$tool = new tool();
+		$waktu = $tool->getTime("Y-m-d H:i:s",'');
+		foreach($arrData as $key=>$value){
+			${$key} = $value;
+		}
+		//get facebook reset
+		$twitterReset = $getValue->settings('twitterReset');
+		if($twitterReset > $waktu){
+			return array('status'=>'failed','notification'=>'reset akan dilakukan pada '.$twitterReset);
+		}
+		$arrTwitter = $getValue->twitterAccount();
+		if(count($arrTwitter)==0){
+			return array('status'=>'failed','notification'=>getStr('strnotfound',array('akun')));
+		}
+		//reset user stats
+		$sql = "UPDATE twitter_account SET 
+			tweet=0,
+			retweet=0,
+			likes=0,
+			comment=0,
+			follow=0,
+			unfollow=0
+		";
+		$process = $conn->prepare($sql);
+		$process->execute();
+		$process->close();
+		//move twitter_activity to twitter_activity_log
+		$sql = "INSERT INTO twitter_activity_log SELECT * FROM twitter_activity_log WHERE done=1";
+		$process = $conn->prepare($sql);
+		$process->execute();
+		$process->close();
+		//truncating current activity
+		$sql = "TRUNCATE twitter_activity";
+		$process = $conn->prepare($sql);
+		$process->execute();
+		$process->close();
+		//building daily activity
+		foreach($arrTwitter as $id=>$arr){
+			$bind = '';
+			$params = array();
+			$query = array();
+			$toBuild = array(
+				'tweet'=>'tweetInterval',
+				'retweet'=>'tweetInterval',
+				'likes'=>'likesInterval',
+				'comment'=>'commentInterval',
+				'follow'=>'followInterval',
+				'unfollow'=>'unfollowInterval',
+			);
+			//reset interval if exists
+			foreach($toBuild as $activity=>$intervalField){
+				unset(${$intervalField});
+			}
+			//define total activity
+			$totalActivity = 0;
+			foreach($toBuild as $activity=>$intervalField){
+				$amount = $arr[$activity];
+				$max = $arr['max'.ucwords($activity)];
+				//effectiveness
+				$effectiveness = rand(80,100);
+				$max = floor($max*$effectiveness)/100;
+				$interval = $arr[$intervalField];
+				$lateInterval = $interval*2;
+				//define setTime
+				if(!ISSET(${$intervalField})){
+					${$intervalField} = new DateTime($waktu);
+					$eachActivityInterval = rand(30,60)*$totalActivity;
+					${$intervalField}->modify('+'.$eachActivityInterval.' second'); //giving random [30-90 seconds]
+				}
+				while($amount < $max){
+					$bind .= 'sss';
+					$params[] = $arr['email'];
+					$params[] = $activity;
+					$params[] = ${$intervalField}->format("Y-m-d H:i:s");
+					$query[] = "(?,?,?)";
+					$amount++;
+					//modify next run
+					$next = rand($interval,$lateInterval);
+					${$intervalField}->modify("+$next minute");					
+				}
+				$totalActivity++;
+			}
+			array_unshift($params,$bind);
+			$params = $tool->refValues($params);
+			$query = implode(',',$query);
+			$sql = "INSERT INTO twitter_activity(email,activity,runAt) VALUES $query";
+			$process = $conn->prepare($sql);
+			call_user_func_array(array($process,'bind_param'),$params);
+			$process->execute();
+			$process->close();
+		}
+		//send twitter reset as done
+		$nextReset = new DateTime($waktu);
+		$nextReset->setTime(0,0,0);		
+		$nextReset->modify('+1 day');
+		$nextReset = $nextReset->format("Y-m-d H:i:s");
+		$sql = "UPDATE settings SET value=? WHERE type='twitterReset'";
 		$process = $conn->prepare($sql);
 		$process->bind_param('s',$nextReset);
 		$process->execute();

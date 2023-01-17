@@ -22,7 +22,8 @@ import myConn
 from tool.main import tool
 
 def doLogin(driver,email,password):
-    elem = "//input[@name='username']"
+    #input username
+    elem = "//input[@autocomplete='username']"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
@@ -32,9 +33,24 @@ def doLogin(driver,email,password):
             loginEmail = driver.find_element(By.XPATH,elem)
             loginEmail.send_keys(email)
         except Exception as e:
-            print(e)
-            
-    elem = "//input[@name='password']"
+             print('login email tidak ditemukan')
+    
+    #next button
+    time.sleep(tool.randomNumber(4))        
+    elem = "//span[contains(text(),\'Next')]"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('kesalahan web driver next button')
+    else:
+        try:
+            nextButton = driver.find_element(By.XPATH,elem)
+            tool.customClick(driver,nextButton)
+        except Exception as e:
+            print('next button tidak ditemukan')    
+    
+    #input password
+    elem = "//input[@autocomplete='current-password']"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
@@ -47,8 +63,8 @@ def doLogin(driver,email,password):
             print(e)
             
     #click login button
-    time.sleep(tool.randomNumber(6))    
-    elem = "//div[contains(text(),\'Log in')]"
+    time.sleep(tool.randomNumber(4))    
+    elem = "//span[contains(text(),\'Log in')]"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
@@ -59,23 +75,10 @@ def doLogin(driver,email,password):
             tool.customClick(driver,button)
         except Exception as e:
             print(e)
-            
-    #not now button
-    time.sleep(tool.randomNumber(6))    
-    elem = "//button[contains(text(),\'Not Now')]"
-    try:
-        WebDriverWait(driver,20).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
-    except:
-        print('kesalahan web driver not now button')
-    else:
-        try:
-            button = driver.find_element(By.XPATH,elem)
-            tool.customClick(driver,button)
-        except Exception as e:
-            print(e)            
+                   
 
 def checkLogin(driver):
-    elem = "//input[@name='username']"
+    elem = "//span[contains(text(),\'Log in')]"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
@@ -89,25 +92,115 @@ def checkLogin(driver):
             return True
     return False
 
-def doUnfollow(driver):
-    #open instagram profile
-    elem = "//img[contains(@alt,\'profile picture')]"
+def doLike(driver):
+    tool.scrollDown(driver)
+    time.sleep(tool.randomNumber(4))
+    #click like button randomly
+    elem = "//div[@data-testid='like']"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
-        print('kesalahan web driver instagram profile')
+        print('kesalahan webdriver like button')
         return False
     else:
         try:
-            explorer = driver.find_element(By.XPATH,elem)
-            tool.customClick(driver,explorer)
+            likeButton = driver.find_elements(By.XPATH,elem)
+            sum = len(likeButton)-1
+            rand = random.randint(0,sum)
+            tool.customClick(driver,likeButton[rand])
+            return True
         except Exception as e:
-            print(e)
+            print('tidak dapat menemukan box like'+str(e))  
+            return False       
+        
+def doComment(driver,commentText):
+    tool.scrollDown(driver)
+    time.sleep(tool.randomNumber(4))
+    
+    #find comment button randomly
+    elem = "//div[contains(@aria-label,\'Reply')]"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('kesalahan webdriver textarea comment')
+        return False
+    else:
+        try:
+            commentButton = driver.find_elements(By.XPATH,elem)
+            sum = len(commentButton)-1
+            rand = random.randint(0,sum)
+            tool.customClick(driver,commentButton[rand])
+        except Exception as e:
+            print('tidak dapat menemukan textarea comment'+str(e))
+            return False
+        
+    #get parent
+    elem = "//div[@aria-labelledby='modal-header']"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('kesalahan webdriver dialog comment')
+        return False
+    else:
+        try:
+            dialog = driver.find_element(By.XPATH,elem)
+        except Exception as e:
+            print('tidak dapat menemukan dialog comment')
+            return False        
+        
+    #to find textarea and send comment
+    elem = ".//div[@class='public-DraftStyleDefault-block public-DraftStyleDefault-ltr']"
+    try:
+        WebDriverWait(dialog,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('kesalahan webdriver textarea comment')
+        return False
+    else:
+        try:
+            commentBox = dialog.find_element(By.XPATH,elem)
+            commentBox.send_keys(commentText)
+        except Exception as e:
+            print('tidak dapat menemukan textarea comment'+str(e))
+            return False    
+            
+    #do post comment
+    time.sleep(tool.randomNumber(4))
+    elem = ".//span[contains(text(),'Reply')]"
+    try:
+        WebDriverWait(dialog,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('kesalahan webdriver post button')
+        return False
+    else:
+        try:
+            postButton = dialog.find_element(By.XPATH,elem)
+            tool.customClick(driver,postButton)
+            return True
+        except Exception as e:
+            print('tidak dapat menemukan post button') 
+            return False   
+
+
+
+def doUnfollow(driver):
+    #open twitter profile
+    elem = "//a[@aria-label='Profile']"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('kesalahan web driver twitter profile')
+        return False
+    else:
+        try:
+            profile = driver.find_element(By.XPATH,elem)
+            tool.customClick(driver,profile)
+        except Exception as e:
+            print('tidak bisa klik profil')
             return False
             
     #click following
     time.sleep(tool.randomNumber(4))
-    elem = "//div[contains(text(),\'following')]"
+    elem = "//a[contains(@href,\'/following')]"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
@@ -115,21 +208,22 @@ def doUnfollow(driver):
         return False
     else:
         try:
-            explorer = driver.find_element(By.XPATH,elem)
-            tool.customClick(driver,explorer)
+            following = driver.find_element(By.XPATH,elem)
+            tool.customClick(driver,following)
         except Exception as e:
             print(e)
             return False    
     
-    #scroll 10 times
-    scroll = 10
+    #scroll 2 times
+    scroll = 2
     while scroll > 0:
         scroll -= 1
-        tool.scrollFollowingDown(driver)
+        tool.scrollDown(driver)
     
     #click unfollow button [random]
+    canUnfollow = False
     time.sleep(tool.randomNumber(4))
-    elem = "//div[@role='dialog']//div[contains(text(),\'Following')]"
+    elem = "//span[contains(text(),\'Following')]"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
@@ -142,90 +236,74 @@ def doUnfollow(driver):
             if sum > random.randint(300,500):
                 rand = random.randint(0,sum)
                 tool.customClick(driver,unfollowButton[rand])
+                canUnfollow = True                
             else:
-                print('tidak ada yang perlu di unfollow, saat ini: '+sum)
+                print('tidak ada yang perlu di unfollow, saat ini: '+str(sum))
         except Exception as e:
-            print('tidak bisa menemukan unfollow button'+str(e))      
+            print('tidak bisa menemukan unfollow button')      
             return False   
-            
-    #click unfollow confirmation button [random]
-    time.sleep(tool.randomNumber(4))
-    elem = "//div[@role='dialog']//button[contains(text(),\'Unfollow')]"
-    try:
-        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
-    except:
-        print('kesalahan web driver unfollow confirmation button')
-    else:
-        try:
-            unfollowButton = driver.find_elements(By.XPATH,elem)
-            sum = len(unfollowButton)-1
-            rand = random.randint(0,sum)
-            tool.customClick(driver,unfollowButton[rand])
-            return True
-        except Exception as e:
-            print('tidak bisa menemukan unfollow confirmation button'+str(e))   
-            return False 
     
-
+    if canUnfollow==True:
+        #click unfollow confirmation button [random]
+        time.sleep(tool.randomNumber(4))
+        elem = "//div[@data-testid='confirmationSheetDialog']//span[contains(text(),\'Unfollow')]"
+        try:
+            WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+        except:
+            print('kesalahan web driver unfollow confirmation button')
+        else:
+            try:
+                unfollowButton = driver.find_element(By.XPATH,elem)
+                tool.customClick(driver,unfollowButton)
+                return True
+            except Exception as e:
+                print('tidak bisa menemukan unfollow confirmation button'+str(e))   
+                return False 
+    #when we cannot unfollow due to small following amount just return true
+    return True
+    
 def doFollow(driver):
-    #open instagram explorer
-    elem = "//a[@href='/explore/']"
+    time.sleep(tool.randomNumber(4))
+    #open status
+    elem = "//a[contains(@href,\'/status/')]"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
-        print('kesalahan web driver instagram explorer')
+        print('kesalahan web driver open status')
         return False
     else:
         try:
-            explorer = driver.find_element(By.XPATH,elem)
-            tool.customClick(driver,explorer)
+            status = driver.find_elements(By.XPATH,elem)
+            sum = len(status)-1
+            rand = random.randint(0,sum)
+            tool.customClick(driver,status[rand])
         except Exception as e:
-            print(e)
+            print('gagal klik open stastus')
             return False
 
     time.sleep(tool.randomNumber(4))
     #click photo
-    elem = "//a[contains(@href,\'/p/')]"
+    elem = "//a[contains(@href,\'/likes')]"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
-        print('kesalahan web driver photo list')
+        print('kesalahan web driver go to like')
         return False
     else:
         try:
-            photoList = driver.find_elements(By.XPATH,elem)
-            sum = len(photoList)-1
-            rand = random.randint(0,sum)
-            tool.customClick(driver,photoList[rand])
+            goToLike = driver.find_element(By.XPATH,elem)
+            tool.customClick(driver,goToLike)
         except Exception as e:
-            print('gagal klik photo'+str(e))
+            print('gagal klik go to like'+str(e))
             return False
     
-    #click like button [random] //div[@role='presentation']
+    #click randomly follow button
     time.sleep(tool.randomNumber(4))
-    elem = "//div[contains(text(),\'likes')]"
-    try:
-        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
-    except:
-        print('kesalahan web driver like button')
-    else:
-        try:
-            likeButton = driver.find_elements(By.XPATH,elem)
-            sum = len(likeButton)-1
-            rand = random.randint(0,sum)
-            tool.customClick(driver,likeButton[rand])
-        except Exception as e:
-            print('gagal klik tombol like'+str(e))
-            return False
-
-    #click follow button [random]
-    time.sleep(tool.randomNumber(4))
-    elem = "//div[@role='dialog']//div[contains(text(),\'Follow')]"
+    elem = "//span[contains(text(),\'Follow')]"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
         print('kesalahan web driver follow button')
-        return False
     else:
         try:
             followButton = driver.find_elements(By.XPATH,elem)
@@ -234,5 +312,5 @@ def doFollow(driver):
             tool.customClick(driver,followButton[rand])
             return True
         except Exception as e:
-            print('tidak bisa menemukan follow button'+str(e))
-            return False   
+            print('gagal klik tombol follow'+str(e))
+            return False

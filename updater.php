@@ -826,7 +826,118 @@ else if($version=="1.0.9"){
 	$sql = "INSERT INTO settings(type,value) VALUES('99Current',0)";
 	$process = $conn->prepare($sql);
 	$process->execute();
-	$process->close();		
+	$process->close();
+	//create table twitter account
+	$sql = "CREATE TABLE twitter_account(
+		id INT(11) AUTO_INCREMENT PRIMARY KEY,
+		email VARCHAR(255) NOT NULL DEFAULT '',
+		password VARCHAR(100) NOT NULL DEFAULT '',
+		proxy VARCHAR(50) NOT NULL DEFAULT '',
+		tweet INT(11) NOT NULL DEFAULT 0,
+		maxTweet INT(11) NOT NULL DEFAULT 2,
+		retweet INT(11) NOT NULL DEFAULT 0,
+		maxRetweet INT(11) NOT NULL DEFAULT 2,
+		likes INT(11) NOT NULL DEFAULT 0,
+		maxLikes INT(11) NOT NULL DEFAULT 50,
+		comment INT(11) NOT NULL DEFAULT 0,
+		maxComment INT(11) NOT NULL DEFAULT 10,
+		follow INT(11) NOT NULL DEFAULT 0,
+		maxFollow INT(11) NOT NULL DEFAULT 20,
+		unfollow INT(11) NOT NULL DEFAULT 0,
+		maxUnfollow INT(11) NOT NULL DEFAULT 20,
+		tweetInterval INT(11) NOT NULL DEFAULT 120,
+		likesInterval INT(11) NOT NULL DEFAULT 5,
+		commentInterval INT(11) NOT NULL DEFAULT 10,
+		followInterval INT(11) NOT NULL DEFAULT 5,
+		unfollowInterval INT(11) NOT NULL DEFAULT 5,
+		restInterval INT(11) NOT NULL DEFAULT 30,
+		nextRun DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(), 
+		waktu DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP()
+	)";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = "create table twitter_account";
+	}
+	//create input status
+	$sql = "CREATE TABLE input_status(
+		id INT(11) AUTO_INCREMENT PRIMARY KEY,
+		category VARCHAR(50) NOT NULL DEFAULT '',
+		language VARCHAR(10) NOT NULL DEFAULT '',
+		text TEXT UNIQUE NOT NULL DEFAULT '',
+		waktu DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP()
+	)";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = "create table twitter_status";
+	}
+	//create input comment
+	$sql = "CREATE TABLE input_comment(
+		id INT(11) PRIMARY KEY AUTO_INCREMENT,
+		category VARCHAR(255) NOT NULL DEFAULT '',
+		language VARCHAR(25) NOT NULL DEFAULT '',
+		text TEXT UNIQUE NOT NULL DEFAULT '',
+		waktu DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP()
+	)";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'gagal membuat database input_comment';
+	}
+	//inserting from facebook_status
+	$sql = "INSERT IGNORE input_status(category,language,text) SELECT category,language,text FROM facebook_status";
+	$process = $conn->prepare($sql);
+	$process->execute();
+	$process->close();
+	//inserting from instagram_status
+	$sql = "INSERT IGNORE input_status(category,language,text) SELECT category,language,text FROM instagram_status";
+	$process = $conn->prepare($sql);
+	$process->execute();
+	$process->close();	
+	//inserting from facebook_comment
+	$sql = "INSERT IGNORE input_comment(category,language,text) SELECT category,language,text FROM facebook_comment";
+	$process = $conn->prepare($sql);
+	$process->execute();
+	$process->close();
+	//inserting from instagram_comment
+	$sql = "INSERT IGNORE input_comment(category,language,text) SELECT category,language,text FROM instagram_comment";
+	$process = $conn->prepare($sql);
+	$process->execute();
+	$process->close();
+	//create posted_twitter_image
+	$sql = "CREATE TABLE posted_twitter_image(
+		id INT(11) PRIMARY KEY AUTO_INCREMENT,
+		email VARCHAR(100) NOT NULL DEFAULT '',
+		filename VARCHAR(255) NOT NULL DEFAULT '',
+		posted DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP()
+	)";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'gagal membuat database posted_twitter_image';
+	}
+	//create twitter_activity table
+	$sql = "CREATE TABLE twitter_activity(
+		id INT(11) PRIMARY KEY AUTO_INCREMENT,
+		email VARCHAR(100) NOT NULL DEFAULT '',
+		activity VARCHAR(50) NOT NULL DEFAULT '',
+		done TINYINT(1) NOT NULL DEFAULT 0,
+		runAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+		nextRun DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP()
+	)";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'gagal membuat database twitter_activity';
+	}
+	//create twitter_activity_log table
+	$sql = "CREATE TABLE twitter_activity_log(
+		id INT(11) PRIMARY KEY AUTO_INCREMENT,
+		email VARCHAR(100) NOT NULL DEFAULT '',
+		activity VARCHAR(50) NOT NULL DEFAULT '',
+		done TINYINT(1) NOT NULL DEFAULT 0,
+		runAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+		nextRun DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP()
+	)";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'gagal membuat database twitter_activity';
+	}	
+	//create twitter reset
+	$sql = "INSERT INTO settings(type,value) VALUES('twitterReset',CURRENT_TIMESTAMP())";
+	$process = $conn->prepare($sql);
+	$process->execute();
+	$process->close();	
 	$version = "1.0.10";
 }
 
