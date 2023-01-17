@@ -150,9 +150,6 @@ def getMaxPage():
     return result[0]['value']
 
 def updateCurentPage(page):
-    #update page
-    if page > 100:
-        page = 0    
     myCursor = mydb.cursor(dictionary=True)
     val = [page]
     sql = "UPDATE settings SET value=%s WHERE type='rumahkuCurrent'"
@@ -201,9 +198,6 @@ max = 20
 nomor = []
 page = 0
 
-#get url profile
-urlProfile = getUrlProfile(20)
-
 if __name__ == "__main__":  
     driver = webdriver.Chrome(options=options)
     driver.minimize_window()
@@ -218,8 +212,8 @@ if __name__ == "__main__":
     action = ActionChains(driver)
 
     with driver:
-        #get profile [it would run until max 20 pages]
-        if len(urlProfile) <= 0:
+        #get profile
+        if current < maxPage:
             #define url profile
             urlProfile = []
             #when current page has not reached max
@@ -236,7 +230,9 @@ if __name__ == "__main__":
             else:
                 print('tidak ada url profile untuk dikirim')
         #render number
-        elif len(urlProfile) > 0:
+        elif current >= maxPage:
+            #get profile url
+            urlProfile = getUrlProfile(20)
             #render number
             for link in urlProfile:
                 output = readNumber(link)

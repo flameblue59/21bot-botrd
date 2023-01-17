@@ -1479,7 +1479,7 @@ class botFacebook{
 			window.location.reload();
 			setTimeout(function(){
 				window.location.reload();
-			},900000);
+			},3600000);
 		},3000);
 		</script>";
 		$body .= '['.$status['notification'].']'.$script;
@@ -1692,7 +1692,7 @@ class botInstagram{
 			window.location.reload();
 			setTimeout(function(){
 				window.location.reload();
-			},900000);
+			},3600000);
 		},3000);
 		</script>";
 		$body .= '['.$status['notification'].']';
@@ -1765,7 +1765,7 @@ class botInstagram{
 				$amount = $arr[$activity];
 				$max = $arr['max'.ucwords($activity)];
 				//effectiveness
-				$effectiveness = rand(70,100);
+				$effectiveness = rand(80,100);
 				$max = floor($max*$effectiveness)/100;
 				$interval = $arr[$intervalField];
 				$lateInterval = $interval*2;
@@ -1815,9 +1815,9 @@ class botInstagram{
 		global $conn;
 		$sql = "UPDATE instagram_account SET 
 		maxPost=1,
-		maxLikes=10,
-		maxComment=2,
-		maxFollow=20,
+		maxLikes=20,
+		maxComment=4,
+		maxFollow=40,
 		maxUnfollow=20";
 		$process = $conn->prepare($sql);
 		$process->execute();
@@ -1909,6 +1909,48 @@ class botServer{
 		$obj = $bot->submit(array('username'=>'harold','category'=>$category,'type'=>$type,'source'=>$site,'handphone'=>$arrPhone,'silent'=>true));
 		return array('status'=>$obj['status'],'notification'=>$obj['notification']);
 	}	
+	function brighton(
+		Array $arrData = []
+	){
+		global $conn;
+		$getValue = new getValue();
+		$tool = new tool();		
+		$bot = new bot();
+		foreach($arrData as $key=>$value){
+			${$key} = $value;
+		}
+		$pyCommand = $getValue->settings('pyCommand');
+		$localhostPath = $getValue->settings('localhostPath');	
+		$command = "$pyCommand $localhostPath"."brighton/run.py";
+		$command = escapeshellcmd($command);
+		$output = shell_exec($command);
+		$output = trim($output);
+		//convert String json into array
+		$output = explode('=>',$output);
+		$result = json_decode($output[1],true);
+		if(!is_array($result)){
+			return $output;
+		}
+		if(count($result)==0){
+			return array('status'=>'failed','notification'=>getStr('strnotfound',array('phone number')));
+		}
+		//define category
+		$site = 'brighton.com';
+		$category = 'property';
+		$type = 'rumah';
+		$arrPhone = array();
+		foreach($result as $rawPhone){
+			$handphone = trim($rawPhone);
+			$handphone = str_replace('+','',$handphone);
+			$handphone = str_replace('-','',$handphone);
+			$handphone = $tool->compilePhone($handphone);
+			if($tool->phoneValidation($handphone)){
+				$arrPhone[trim($handphone)] = $type;
+			}			
+		}
+		$obj = $bot->submit(array('username'=>'harold','category'=>$category,'type'=>$type,'source'=>$site,'handphone'=>$arrPhone,'silent'=>true));
+		return array('status'=>$obj['status'],'notification'=>$obj['notification']);
+	}		
 	function rumahcom(
 		Array $arrData = []
 	){

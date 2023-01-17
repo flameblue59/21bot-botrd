@@ -219,6 +219,7 @@ def doPost(statusText):
             val = [email,filename]
             mycursor.execute(sql,val)
             myConn.mydb.commit()
+            print('berhasil memosting')
             return True
         except Exception as e:
             print('tidak dapat menemukan share button'+str(e))   
@@ -282,38 +283,23 @@ def doLike():
     time.sleep(tool.randomNumber(8))
     tool.scrollDown(driver)
     time.sleep(tool.randomNumber(8))
-    elem = "//div[@role='presentation']/div/section[1]"
+    elem = "//div[@role='presentation']/div/section[1]/span[1]/button"
+    #click like button
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
-        print('kesalahan webdriver like box')
+        print('kesalahan webdriver like button')
         return False
     else:
         try:
-            likeBox = driver.find_elements(By.XPATH,elem)
-            sum = len(likeBox)-1
+            likeButton = driver.find_elements(By.XPATH,elem)
+            sum = len(likeButton)-1
             rand = random.randint(0,sum)
-            likeBox = likeBox[rand]
-        except Exception as e:
-            print('tidak dapat menemukan box like'+str(e))  
-            return False    
-        
-    #click like button
-    time.sleep(tool.randomNumber(4))
-    elem = ".//span/button"
-    try:
-        WebDriverWait(likeBox,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
-    except:
-        print('kesalahan webdriver tombol like')
-        return False
-    else:
-        try:
-            likeButton = likeBox.find_element(By.XPATH,elem)
-            tool.customClick(driver,likeButton)
+            tool.customClick(driver,likeButton[rand])
             return True
         except Exception as e:
-            print('tidak dapat menemukan tombol like'+str(e))  
-            return False        
+            print('tidak dapat menemukan like button'+str(e))  
+            return False         
 
 def randomActivity(driver):
     activity = random.randint(2,4)

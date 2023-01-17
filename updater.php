@@ -763,7 +763,7 @@ else if($version=="1.0.8"){
 		$arrError[] = "create table rumahku_profile";
 	}
 	//inserting max page to go
-	$sql = "INSERT INTO settings(type,value) VALUES('rumahkuMax',100)";
+	$sql = "INSERT INTO settings(type,value) VALUES('rumahkuMax',5000)";
 	$process = $conn->prepare($sql);
 	$process->execute();
 	$process->close();
@@ -793,6 +793,41 @@ else if($version=="1.0.8"){
 	$process->execute();
 	$process->close();
 	$version = "1.0.9";
+}
+else if($version=="1.0.9"){
+	$sql = "CREATE TABLE property_account(
+		id INT(11) AUTO_INCREMENT PRIMARY KEY,
+		site VARCHAR(255) NOT NULL DEFAULT '',
+		email VARCHAR(255) NOT NULL DEFAULT '',
+		password VARCHAR(100) NOT NULL DEFAULT '',
+		active TINYINT(1) NOT NULL DEFAULT 1,
+		lastSync DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+		waktu DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP()
+	)";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = "create table brighton_account";
+	}
+	//inserting max page to go
+	$sql = "INSERT INTO settings(type,value) VALUES('brightonMax',5000)";
+	$process = $conn->prepare($sql);
+	$process->execute();
+	$process->close();
+	//inserting current page
+	$sql = "INSERT INTO settings(type,value) VALUES('brightonCurrent',0)";
+	$process = $conn->prepare($sql);
+	$process->execute();
+	$process->close();	
+	//inserting max page to go
+	$sql = "INSERT INTO settings(type,value) VALUES('99Max',5000)";
+	$process = $conn->prepare($sql);
+	$process->execute();
+	$process->close();
+	//inserting current page
+	$sql = "INSERT INTO settings(type,value) VALUES('99Current',0)";
+	$process = $conn->prepare($sql);
+	$process->execute();
+	$process->close();		
+	$version = "1.0.10";
 }
 
 if(count($arrError) > 0){

@@ -91,6 +91,7 @@ for account in accountList:
     # just some options passing in to skip annoying popups
     options.add_argument('--no-first-run --no-service-autorun --password-store=basic')
     if __name__ == "__main__":
+        chromeDriver = Service("C:\\XAMPP\\htdocs\\botrd\\grabber\\chromedriver-check.exe")
         driver = webdriver.Chrome(options=options)
         driver.set_window_size(800, 600)
         action = ActionChains(driver)

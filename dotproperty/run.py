@@ -188,6 +188,7 @@ def doRegister(name,email,password):
         
     return True           
     
+
 def getCurrentPage():
     myCursor = mydb.cursor(dictionary=True)
     sql = "SELECT value FROM settings WHERE type='dotpropertyCurrent'"

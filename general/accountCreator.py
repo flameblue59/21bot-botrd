@@ -9,6 +9,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from retry import retry
+from timeout_decorator import timeout, TimeoutError
 import time
 import mysql.connector
 import requests
