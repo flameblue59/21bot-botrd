@@ -128,6 +128,7 @@ def doUnfollow(driver):
         tool.scrollFollowingDown(driver)
     
     #click unfollow button [random]
+    canUnfollow = False
     time.sleep(tool.randomNumber(4))
     elem = "//div[@role='dialog']//div[contains(text(),\'Following')]"
     try:
@@ -142,29 +143,33 @@ def doUnfollow(driver):
             if sum > random.randint(300,500):
                 rand = random.randint(0,sum)
                 tool.customClick(driver,unfollowButton[rand])
+                canUnfollow = True
             else:
-                print('tidak ada yang perlu di unfollow, saat ini: '+sum)
+                print('tidak ada yang perlu di unfollow, saat ini: '+str(sum))
         except Exception as e:
-            print('tidak bisa menemukan unfollow button'+str(e))      
+            print('tidak bisa menemukan unfollow button')      
             return False   
-            
-    #click unfollow confirmation button [random]
-    time.sleep(tool.randomNumber(4))
-    elem = "//div[@role='dialog']//button[contains(text(),\'Unfollow')]"
-    try:
-        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
-    except:
-        print('kesalahan web driver unfollow confirmation button')
-    else:
+    
+    if canUnfollow==True:
+        #click unfollow confirmation button [random]
+        time.sleep(tool.randomNumber(4))
+        elem = "//div[@role='dialog']//button[contains(text(),\'Unfollow')]"
         try:
-            unfollowButton = driver.find_elements(By.XPATH,elem)
-            sum = len(unfollowButton)-1
-            rand = random.randint(0,sum)
-            tool.customClick(driver,unfollowButton[rand])
-            return True
-        except Exception as e:
-            print('tidak bisa menemukan unfollow confirmation button'+str(e))   
-            return False 
+            WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+        except:
+            print('kesalahan web driver unfollow confirmation button')
+        else:
+            try:
+                unfollowButton = driver.find_elements(By.XPATH,elem)
+                sum = len(unfollowButton)-1
+                rand = random.randint(0,sum)
+                tool.customClick(driver,unfollowButton[rand])
+                return True
+            except Exception as e:
+                print('tidak bisa menemukan unfollow confirmation button'+str(e))   
+                return False 
+    #when we have small amount of following
+    return True
     
 
 def doFollow(driver):
