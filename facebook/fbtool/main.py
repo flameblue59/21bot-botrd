@@ -31,25 +31,44 @@ class fbtool:
         mycursor.execute(sql,val)
         result = mycursor.fetchall()
         return result[0]['text']
-    def getPhoto(email):
+    def getPhoto(email,postType):
+        #define table list
+        tableList = {
+            'group':'posted_group_image',
+            'profile':'posted_profile_image'
+        }
+        #define table
+        table = tableList[postType]
         #randomize image
         dir = fbtool.facebookPath(email)
         listImage = os.listdir(dir)
         #check for uniqueness
-        mycursor = myConn.mydb.cursor(dictionary=True)
-        sql = "SELECT filename FROM posted_group_image WHERE email=%s"
+        mycursor = myConn.mydb.cursor(dictionary=True,buffered=True)
+        sql = "SELECT filename FROM "+table+" WHERE email=%s"
         val = [email]
         mycursor.execute(sql,val)
         result = mycursor.fetchall()
         for row in result:
-            listImage.remove(row['filename'])
+            if row['filename'] in listImage:
+                listImage.remove(row['filename'])
+        #reset image when empty
+        if len(listImage) <= 0:
+            #reset image
+            fbtool.resetImage(email,table)
+            #just loop its function to make sure we get the result
+            return fbtool.getPhoto(email,postType)
         sum = len(listImage)-1
         rand = random.randint(0,sum)
         filename = listImage[rand]
         return dir+''+filename,filename    
     def customClick(driver,object):
         driver.execute_script('arguments[0].click();',object)
-
+    def resetImage(email,table):
+        myCursor = myConn.mydb.cursor(buffered=True)
+        sql = "DELETE FROM "+table+" WHERE email=%s"
+        val = [email]
+        myCursor.execute(sql,val)
+        myConn.mydb.commit()
     def randomNumber(max):
         min = math.floor(max/2)
         interval = random.randint(min,max)

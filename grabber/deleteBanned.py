@@ -27,14 +27,14 @@ def deleteBanned():
         print('tidak ada akun untuk dihapus')
         return
     #get account list from folder
-    accountInFolder = os.listdir('C:\\temp\\')
+    accountInFolder = os.listdir('D:\\olx\\')
     accountList = []
     for row in result:
         account = row['email']
         #when account exists in folder then delete it
         if account in accountInFolder:
             accountList.append(account)
-            shutil.rmtree('C:\\temp\\'+account)
+            shutil.rmtree('D:\\olx\\'+account)
     #define total account which folder deleted!
     total = len(accountList)
     print(str(total)+' account folder deleted')

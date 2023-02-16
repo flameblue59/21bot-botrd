@@ -99,13 +99,13 @@ if __name__=="__main__":
         options = uc.ChromeOptions()
 
         # setting profile
-        options.user_data_dir = "c:\\temp\\profile"
+        options.user_data_dir = "D:\\olx\\profile"
 
         # another way to set profile is the below (which takes precedence if both variants are used
         randProfile = random.randint(0,10000000);
         options.add_argument("--window-position=2000,0")
         options.add_argument('--start-maximized')
-        options.add_argument('--user-data-dir=c:\\temp\\profile'+str(randProfile))
+        options.add_argument('--user-data-dir=D:\\olx\\profile'+str(randProfile))
         #options.add_argument("user-agent="+random.choice(userAgent))
 
         # just some options passing in to skip annoying popups

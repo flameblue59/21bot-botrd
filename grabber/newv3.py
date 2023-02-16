@@ -9,8 +9,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException 
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.service import Service
-from retry import retry
-from timeout_decorator import timeout, TimeoutError
 import time
 import shutil
 import random
@@ -29,11 +27,6 @@ database="bot_number"
 
 def set_page_load_timeout(self, time_to_wait):
     driver.refresh()
-
-@retry(TimeoutError, tries=3)
-@timeout(30)
-def get_with_retry(driver, url):
-    driver.get(url)
 
 def bundleUrl():
     #read from php input
@@ -145,10 +138,23 @@ def sendBanned(account):
     mycursor.execute(sql,val)
     mydb.commit()
 
+print('menjalankan script')
 #bundling url
-urlList = bundleUrl()
+try:
+    urlList = bundleUrl()
+    print('membaca url')
+except:
+    print('kesalahan saat bundling url')
+    quit()
 #credentials
-userEmail = getExisting()
+try:
+    userEmail = getExisting()
+    if userEmail=='':
+        print('tidak ada akun')
+        quit()
+    print('membaca akun')
+except:
+    print('terjadi kesalahan akun')
 userPass = '@bobby123@'
 logged = False
 numberList = []
@@ -160,10 +166,10 @@ if userEmail=='error':
 options = webdriver.ChromeOptions()
 
 # setting profile
-options.user_data_dir = "c:\\temp\\profile"
+options.user_data_dir = "D:\\olx\\profile"
 
 # another way to set profile is the below (which takes precedence if both variants are used
-options.add_argument('--user-data-dir=c:\\temp\\'+userEmail)
+options.add_argument('--user-data-dir=D:\\olx\\'+userEmail)
 options.add_argument('--start-maximized')
 #options.add_argument('--incognito')
 #options.add_argument('--start-fullscreen')
@@ -175,9 +181,9 @@ options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 # just some options passing in to skip annoying popups
 options.add_argument('--no-first-run --no-service-autorun --password-store=basic')
-chromeDriver = Service("C:\\XAMPP\\htdocs\\botrd\\grabber\\chromedriver.exe")
-driver = webdriver.Chrome(service=chromeDriver,options=options)
-action = ActionChains(driver)
+driver = webdriver.Chrome(options=options)
+
+print('memasang selenium stealth')
 stealth(driver,
         languages=["en-US", "en"],
         vendor="Google Inc.",
@@ -227,6 +233,7 @@ with driver:
                 
             objJson = json.dumps(data)
             print('==>'+objJson)
-        except:
+        except Exception as e:
+            print(str(e))
             driver.quit()
     quit()

@@ -77,12 +77,16 @@ def groupPostStatus(driver,statusText):
     except:
         print('gagal klik tombol posting')
         return False
+    #check for pending post
+    try:
+        checkPendingPost(driver)
+    except:
+        print('postingan sukses terposting')
     return True
         
 def groupPostPhoto(driver,statusText,email):
     #setup image
-    imagePath,filename = fbtool.getPhoto(email)
-    print(imagePath)
+    imagePath,filename = fbtool.getPhoto(email,'group')
     #click status box
     try:
         driver.implicitly_wait(3)
@@ -131,45 +135,121 @@ def groupPostPhoto(driver,statusText,email):
     val = [email,filename]
     mycursor.execute(sql,val)
     myConn.mydb.commit()
+    #check for pending post
+    try:
+        checkPendingPost(driver)
+    except:
+        print('postingan sukses terposting')    
     return True
 
 def goToGroup(driver):
+    #click side menu
+    elem = "//a[@name='Lainnya']"
     try:
-        driver.implicitly_wait(3)
-        menu = driver.find_element(By.XPATH,"//a[@name='Lainnya']")
-        menu.click()
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
-        print('gagal klik menu [list]')
+        print('kesalahan web driver klik menu')
+    else:
+        try:
+            driver.implicitly_wait(3)
+            menu = driver.find_element(By.XPATH,elem)
+            menu.click()
+        except:
+            print('gagal klik menu [list]')
     time.sleep(fbtool.randomNumber(4))
+    #click menu
+    elem = "//div[text()='Grup']"
     try:
-        time.sleep(fbtool.randomNumber(4))
-        driver.implicitly_wait(3)
-        link = driver.find_element(By.XPATH,"//div[contains(text(),\'Grup')]")
-        link.click()
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
-        print('gagal klik menu grup')
+        print('kesalahan web driver klik menu')
+    else:
+        try:
+            driver.implicitly_wait(3)
+            menu = driver.find_element(By.XPATH,elem)
+            menu.click()
+        except:
+            print('gagal klik menu')
     time.sleep(fbtool.randomNumber(4))
+    #click group button [list]
+    elem = "//a[contains(@href,\'/groups_browse/your_groups/')]"
     try:
-        time.sleep(fbtool.randomNumber(2))
-        groupTab = driver.find_element(By.XPATH,"//a[@aria-label='Grup']")
-        groupTab.click()
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
-        print('gagal memilih grup')
+        print('kesalahan web driver klik group button')
+    else:
+        try:
+            driver.implicitly_wait(3)
+            menu = driver.find_element(By.XPATH,elem)
+            menu.click()
+        except:
+            print('gagal klik group button')
     time.sleep(fbtool.randomNumber(4))
+    #choose group from list
+    elem = "//a[contains(@href,\'/groups/')]"
+    time.sleep(fbtool.randomNumber(4))    
     try:
-        #group list
-        time.sleep(fbtool.randomNumber(2))
-        groupList = driver.find_elements(By.XPATH,"//a[contains(@href,\'/groups/')]")
-        #need to remove thesimlife group since we do not need to go there
-        for obj in groupList:
-            link = obj.get_attribute('href')
-            if '372219174991684' in link:
-                groupList.remove(obj)
-        sum = len(groupList)-1
-        rand = random.randint(0,sum)
-        groupList[rand].click()
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
-        print('gagal menuju grup')
+        print('kesalahan web driver klik group button')
+    else:    
+        try:
+            #group list
+            time.sleep(fbtool.randomNumber(2))
+            groupList = driver.find_elements(By.XPATH,elem)
+            #need to remove thesimlife group since we do not need to go there
+            for obj in groupList:
+                link = obj.get_attribute('href')
+                if '372219174991684' in link:
+                    groupList.remove(obj)
+            sum = len(groupList)-1
+            rand = random.randint(0,sum)
+            groupList[rand].click()
+        except:
+            print('gagal menuju grup')
+            
+def checkPendingPost(driver):
+    pendingPost = False
+    time.sleep(fbtool.randomNumber(4))
+    elem = "//div[id='groupMallNotices']//span[contains(text(),\'Postingan Anda sudah diajukan dan menunggu persetujuan admin atau moderator.')]"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('tidak ada pending post')
+    else:
+        pendingPost = True
+    
+    #when there are no pending then just return to activity
+    if pendingPost==False:
+        return False    
+    #when there are pending post then just leave the group
+    time.sleep(fbtool.randomNumber(4))
+    elem = "//a[@aria-label='Bergabung']"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('Tidak ada tombol "Bergabung"')
+    else:
+        try:
+            button = driver.find_element(By.XPATH,elem)
+            fbtool.customClick(driver,button)
+        except:
+            print('tombol "Bergabung" tidak ditemukan')
+            
+    #click leave group
+    time.sleep(fbtool.randomNumber(4))
+    elem = "//a[contains(@href,\'/group/leave/')]"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('Tidak ada tombol "Keluar dari Grup"')
+    else:
+        try:
+            leaveButton = driver.find_element(By.XPATH,elem)
+            fbtool.customClick(driver,leaveButton)
+        except:
+            print('tombol "Keluar dari Grup" tidak ditemukan')    
+    return True
         
 def groupInvite(driver,numberInvite):
     time.sleep(fbtool.randomNumber(4))

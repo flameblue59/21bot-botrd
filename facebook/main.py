@@ -84,7 +84,7 @@ class main:
             
     def postStatusPhoto(driver,statusText,email):
         #setup image
-        imagePath,filename = fbtool.getPhoto(email)    
+        imagePath,filename = fbtool.getPhoto(email,'profile')    
         elem = "//div[contains(text(),\'Apa yang Anda pikirkan sekarang?')]"
         #click status box
         try:

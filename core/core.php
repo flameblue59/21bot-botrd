@@ -208,6 +208,7 @@ class getValue{
 			'id'=>'id',
 			'email'=>'email',
 			'password'=>'password',
+			'server'=>'server',
 			'proxy'=>'proxy',
 			'post'=>'post',
 			'maxPost'=>'maxPost',
@@ -243,12 +244,12 @@ class getValue{
 			}
 		}
 		//bind param
-		$bind = 's';
+		$bind = '';
 		$params = array();
 		$query = array();
 		$arrJson = array();
 		$field = $arrField;
-		$arrFilter = array('email','password','proxy');
+		$arrFilter = array('email','password','server','proxy');
 		foreach($arrFilter as $value){
 			if(ISSET(${$value})){
 				$bind .= 's';
@@ -264,7 +265,7 @@ class getValue{
 		else{
 			$query = '';
 		}
-		//get pinterest list
+		//get instagram list
 		$queryResult = implode(',',$field);
 		$sql = "SELECT $queryResult FROM instagram_account $query $group $order";
 		$process = $conn->prepare($sql);
@@ -300,6 +301,7 @@ class getValue{
 			'id'=>'id',
 			'email'=>'email',
 			'password'=>'password',
+			'server'=>'server',
 			'proxy'=>'proxy',
 			'tweet'=>'tweet',
 			'maxTweet'=>'maxTweet',
@@ -338,12 +340,12 @@ class getValue{
 			}
 		}
 		//bind param
-		$bind = 's';
+		$bind = '';
 		$params = array();
 		$query = array();
 		$arrJson = array();
 		$field = $arrField;
-		$arrFilter = array('email','password','proxy');
+		$arrFilter = array('email','password','server','proxy');
 		foreach($arrFilter as $value){
 			if(ISSET(${$value})){
 				$bind .= 's';
@@ -1723,8 +1725,8 @@ class botFacebook{
 		$likeInterval = 3;
 		$confirmFriendInterval = 3;
 		$groupInviteInterval = 10;
-		$profilePostInterval = 90;
-		$groupPostInterval = 90;
+		$profilePostInterval = 45;
+		$groupPostInterval = 45;
 		$sql = "ALTER TABLE facebook_account 
 			CHANGE likeInterval likeInterval INT(11) NOT NULL DEFAULT $likeInterval,
 			CHANGE confirmFriendInterval confirmFriendInterval INT(11) NOT NULL DEFAULT $confirmFriendInterval,
@@ -1749,15 +1751,15 @@ class botFacebook{
 			${$key} = $value;
 		}
 		$sql = "UPDATE facebook_account SET 
-			maxLikes=40,
+			maxLikes=60,
 			maxComment=10,
 			maxAddFriend=40,
-			maxConfirmFriend=50,
+			maxConfirmFriend=70,
 			maxUnFriend=20,
 			maxProfileWalk=20,
 			maxProfilePostStatus=2,
 			maxProfilePostPhoto=2,
-			maxGroupInvite=100,
+			maxGroupInvite=50,
 			maxGroupPostStatus=1";
 		$process = $conn->prepare($sql);
 		$process->execute();
@@ -1773,8 +1775,13 @@ class botInstagram{
 		global $conn;
 		$getValue = new getValue();
 		$tool = new tool();
+		if(!ISSET($_GET['server'])){
+			return array('status'=>'failed','notification'=>'harap isikan server');
+		}
+		//set server
+		$server = $_GET['server'];
 		//build activity
-		$status = $this->buildDailyActivity();
+		$status = $this->buildDailyActivity($server);
 		$pyCommand = $getValue->settings('pyCommand');
 		$localhostPath = $getValue->settings('localhostPath');
 		$command = "$pyCommand $localhostPath"."instagram/instagram.py";
@@ -1790,10 +1797,11 @@ class botInstagram{
 			},3600000);
 		},3000);
 		</script>";
-		$body .= '['.$status['notification'].']';
-		echo $body.$script;
+		$body .= $script.'['.$status['notification'].']';
+		return array('status'=>'success','notification'=>'bot instagram berjalan','callback'=>array('data'=>$body));
 	}	
 	function buildDailyActivity(
+		String $server,
 		Array $arrData = []
 	){
 		global $conn;
@@ -1803,12 +1811,22 @@ class botInstagram{
 		foreach($arrData as $key=>$value){
 			${$key} = $value;
 		}
-		//get facebook reset
-		$instagramReset = $getValue->settings('instagramReset');
-		if($instagramReset > $waktu){
+		//set instagramReset cron
+		$type = 'instagramReset'.$server;
+		//get instagram reset
+		$instagramReset = $getValue->settings($type);
+		if(empty($instagramReset)){
+			$sql = "INSERT INTO settings(type,value) VALUES(?,?)";
+			$process = $conn->prepare($sql);
+			$process->bind_param('ss',$type,$waktu);
+			$process->execute();
+			$process->close();
+			$instagramReset = $getValue->settings($type);			
+		}
+		else if($instagramReset > $waktu){
 			return array('status'=>'failed','notification'=>'reset akan dilakukan pada '.$instagramReset);
 		}
-		$arrInstagram = $getValue->instagramAccount();
+		$arrInstagram = $getValue->instagramAccount(array('server'=>$server));
 		if(count($arrInstagram)==0){
 			return array('status'=>'failed','notification'=>getStr('strnotfound',array('akun')));
 		}
@@ -1818,18 +1836,13 @@ class botInstagram{
 			likes=0,
 			comment=0,
 			follow=0,
-			unfollow=0
-		";
+			unfollow=0 WHERE server=?";
 		$process = $conn->prepare($sql);
+		$process->bind_param('i',$server);
 		$process->execute();
 		$process->close();
 		//move instagram_activity to instagram_activity_log
-		$sql = "INSERT INTO instagram_activity_log SELECT * FROM instagram_activity_log WHERE done=1";
-		$process = $conn->prepare($sql);
-		$process->execute();
-		$process->close();
-		//truncating temp banned
-		$sql = "TRUNCATE instagram_temp_banned";
+		$sql = "INSERT INTO instagram_activity_log SELECT * FROM instagram_activity WHERE done=1";
 		$process = $conn->prepare($sql);
 		$process->execute();
 		$process->close();
@@ -1860,8 +1873,9 @@ class botInstagram{
 				$amount = $arr[$activity];
 				$max = $arr['max'.ucwords($activity)];
 				//effectiveness
-				$effectiveness = rand(80,100);
+				$effectiveness = rand(70,100);
 				$max = floor($max*$effectiveness)/100;
+				//set interval
 				$interval = $arr[$intervalField];
 				$lateInterval = $interval*2;
 				//define setTime
@@ -1870,13 +1884,15 @@ class botInstagram{
 					$eachActivityInterval = rand(30,60)*$totalActivity;
 					${$intervalField}->modify('+'.$eachActivityInterval.' second'); //giving random [30-90 seconds]
 				}
+				$increment = 1;
+				//do looping
 				while($amount < $max){
 					$bind .= 'sss';
 					$params[] = $arr['email'];
 					$params[] = $activity;
 					$params[] = ${$intervalField}->format("Y-m-d H:i:s");
 					$query[] = "(?,?,?)";
-					$amount++;
+					$amount += $increment;
 					//modify next run
 					$next = rand($interval,$lateInterval);
 					${$intervalField}->modify("+$next minute");					
@@ -1892,28 +1908,29 @@ class botInstagram{
 			$process->execute();
 			$process->close();
 		}
-		//send instagram reset as done
+		//set nextReset
 		$nextReset = new DateTime($waktu);
 		$nextReset->setTime(0,0,0);		
 		$nextReset->modify('+1 day');
-		$nextReset = $nextReset->format("Y-m-d H:i:s");
-		$sql = "UPDATE settings SET value=? WHERE type='instagramReset'";
+		$nextReset = $nextReset->format("Y-m-d H:i:s");				
+		//send instagram reset as done
+		$sql = "UPDATE settings SET value=? WHERE type=?";
 		$process = $conn->prepare($sql);
-		$process->bind_param('s',$nextReset);
+		$process->bind_param('ss',$nextReset,$type);
 		$process->execute();
 		$process->close();
 		return array('status'=>'success','notification'=>getStr('strsend',array('build activity')));
-	}
+	}	
 	function resetAccount(
 		Array $arrData = []
 	){
 		global $conn;
 		$sql = "UPDATE instagram_account SET 
 		maxPost=1,
-		maxLikes=20,
+		maxLikes=30,
 		maxComment=4,
-		maxFollow=40,
-		maxUnfollow=20";
+		maxFollow=50,
+		maxUnfollow=40";
 		$process = $conn->prepare($sql);
 		$process->execute();
 		$process->close();
@@ -1928,8 +1945,13 @@ class botTwitter{
 		global $conn;
 		$getValue = new getValue();
 		$tool = new tool();
+		if(!ISSET($_GET['server'])){
+			return array('status'=>'failed','notification'=>'harap isikan server');
+		}
+		//set server
+		$server = $_GET['server'];		
 		//build activity
-		$status = $this->buildDailyActivity();
+		$status = $this->buildDailyActivity($server);
 		$pyCommand = $getValue->settings('pyCommand');
 		$localhostPath = $getValue->settings('localhostPath');
 		$command = "$pyCommand $localhostPath"."twitter/twitter.py";
@@ -1945,10 +1967,11 @@ class botTwitter{
 			},3600000);
 		},3000);
 		</script>";
-		$body .= '['.$status['notification'].']';
-		echo $body.$script;
+		$body .= $script.'['.$status['notification'].']';
+		return array('status'=>'success','notification'=>'bot twitter berjalan','callback'=>array('data'=>$body));
 	}	
 	function buildDailyActivity(
+		String $server,
 		Array $arrData = []
 	){
 		global $conn;
@@ -1958,12 +1981,22 @@ class botTwitter{
 		foreach($arrData as $key=>$value){
 			${$key} = $value;
 		}
-		//get facebook reset
-		$twitterReset = $getValue->settings('twitterReset');
-		if($twitterReset > $waktu){
+		//set twitter reset cron
+		$type = 'twitterReset'.$server;
+		//get twitter reset
+		$twitterReset = $getValue->settings($type);
+		if(empty($twitterReset)){
+			$sql = "INSERT INTO settings(type,value) VALUES(?,?)";
+			$process = $conn->prepare($sql);
+			$process->bind_param('ss',$type,$waktu);
+			$process->execute();
+			$process->close();
+			$twitterReset = $getValue->settings($type);			
+		}
+		else if($twitterReset > $waktu){
 			return array('status'=>'failed','notification'=>'reset akan dilakukan pada '.$twitterReset);
 		}
-		$arrTwitter = $getValue->twitterAccount();
+		$arrTwitter = $getValue->twitterAccount(array('server'=>$server));
 		if(count($arrTwitter)==0){
 			return array('status'=>'failed','notification'=>getStr('strnotfound',array('akun')));
 		}
@@ -1974,13 +2007,13 @@ class botTwitter{
 			likes=0,
 			comment=0,
 			follow=0,
-			unfollow=0
-		";
+			unfollow=0 WHERE server=?";
 		$process = $conn->prepare($sql);
+		$process->bind_param('i',$server);
 		$process->execute();
 		$process->close();
 		//move twitter_activity to twitter_activity_log
-		$sql = "INSERT INTO twitter_activity_log SELECT * FROM twitter_activity_log WHERE done=1";
+		$sql = "INSERT INTO twitter_activity_log SELECT * FROM twitter_activity WHERE done=1";
 		$process = $conn->prepare($sql);
 		$process->execute();
 		$process->close();
@@ -2012,8 +2045,9 @@ class botTwitter{
 				$amount = $arr[$activity];
 				$max = $arr['max'.ucwords($activity)];
 				//effectiveness
-				$effectiveness = rand(80,100);
+				$effectiveness = rand(70,100);
 				$max = floor($max*$effectiveness)/100;
+				//set interval
 				$interval = $arr[$intervalField];
 				$lateInterval = $interval*2;
 				//define setTime
@@ -2022,13 +2056,15 @@ class botTwitter{
 					$eachActivityInterval = rand(30,60)*$totalActivity;
 					${$intervalField}->modify('+'.$eachActivityInterval.' second'); //giving random [30-90 seconds]
 				}
+				$increment = 1;
+				//do looping
 				while($amount < $max){
 					$bind .= 'sss';
 					$params[] = $arr['email'];
 					$params[] = $activity;
 					$params[] = ${$intervalField}->format("Y-m-d H:i:s");
 					$query[] = "(?,?,?)";
-					$amount++;
+					$amount += $increment;
 					//modify next run
 					$next = rand($interval,$lateInterval);
 					${$intervalField}->modify("+$next minute");					
@@ -2044,32 +2080,34 @@ class botTwitter{
 			$process->execute();
 			$process->close();
 		}
-		//send twitter reset as done
+		//set nextReset
 		$nextReset = new DateTime($waktu);
 		$nextReset->setTime(0,0,0);		
 		$nextReset->modify('+1 day');
-		$nextReset = $nextReset->format("Y-m-d H:i:s");
-		$sql = "UPDATE settings SET value=? WHERE type='twitterReset'";
+		$nextReset = $nextReset->format("Y-m-d H:i:s");				
+		//send instagram reset as done
+		$sql = "UPDATE settings SET value=? WHERE type=?";
 		$process = $conn->prepare($sql);
-		$process->bind_param('s',$nextReset);
+		$process->bind_param('ss',$nextReset,$type);
 		$process->execute();
 		$process->close();
 		return array('status'=>'success','notification'=>getStr('strsend',array('build activity')));
-	}
+	}		
 	function resetAccount(
 		Array $arrData = []
 	){
 		global $conn;
-		$sql = "UPDATE instagram_account SET 
-		maxPost=1,
-		maxLikes=20,
-		maxComment=4,
-		maxFollow=40,
-		maxUnfollow=20";
+		$sql = "UPDATE twitter_account SET 
+		maxTweet=2,
+		maxRetweet=2,
+		maxLikes=60,
+		maxComment=10,
+		maxFollow=30,
+		maxUnfollow=30";
 		$process = $conn->prepare($sql);
 		$process->execute();
 		$process->close();
-		return array('status'=>'success','notification'=>'berhasil reset account Instagram');		
+		return array('status'=>'success','notification'=>'berhasil reset account Twitter');		
 	}
 }
 
@@ -2182,7 +2220,7 @@ class botServer{
 			return array('status'=>'failed','notification'=>getStr('strnotfound',array('phone number')));
 		}
 		//define category
-		$site = 'brighton.com';
+		$site = 'brighton.co.id';
 		$category = 'property';
 		$type = 'rumah';
 		$arrPhone = array();
@@ -2432,11 +2470,15 @@ class tool{
 					$detect = true;
 				}
 			}
+			//check if phone contains ugly code
+			if(stripos($handphone,'*')!==false){
+				$detect = false;
+			}			
 		}
 		//get length
 		$jumlah = strlen($handphone);
 		if($jumlah < 10 || $jumlah > 13){
-			return false;
+			$detect = false;
 		}
 		return $detect;
 	}

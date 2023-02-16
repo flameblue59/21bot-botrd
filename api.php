@@ -7,6 +7,7 @@ if(empty($_GET['f'])){
 
 $botFacebook = new botFacebook();
 $botInstagram = new botInstagram();
+$botTwitter = new botTwitter();
 $f = $_GET['f'];
 if($f=="setInterval"){
 	$status = $botFacebook->setInterval();
@@ -16,6 +17,9 @@ else if($f=="resetAccountFacebook"){
 }
 else if($f=="resetAccountInstagram"){
 	$status = $botInstagram->resetAccount();
+}
+else if($f=="resetAccountTwitter"){
+	$status = $botTwitter->resetAccount();
 }
 print_r($status);
 ?>

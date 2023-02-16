@@ -1,24 +1,21 @@
 from  selenium import webdriver
+from selenium_stealth import stealth
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import TimeoutException 
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from retry import retry
-from timeout_decorator import timeout, TimeoutError
 import time
-import mysql.connector
-import requests
+import shutil
 import random
 import sys
 import json
-import pyautogui
-import shutil
 import os
+import mysql.connector
+import pyautogui
+import requests
 
 session = requests.Session()
 
@@ -86,7 +83,6 @@ def doLogin(userEmail):
     print('mencoba klik login/daftar')
     p = driver.find_element(By.XPATH,"//span[contains(text(),\'Login/Daftar')]")
     print('berhasil')
-    action.move_to_element(p)
     # move to specific position
     #pyautogui.moveTo(50, 70, duration=1)
     # perform an left click of mouse
@@ -142,82 +138,95 @@ def doLogin(userEmail):
 accountList = getAccount()
 userPass = '@bobby123@'
 numberList = []
+grabUrl = True
+options = webdriver.ChromeOptions()
 
 for account in accountList:
     programError = False
-    grabUrl = True
-    options = webdriver.ChromeOptions()
+    try:
+        # setting profile
+        options.user_data_dir = "D:\\olx\\profile"
 
-    # setting profile
-    options.user_data_dir = "c:\\temp\\profile"
+        # another way to set profile is the below (which takes precedence if both variants are used
+        #options.add_argument('--no-sandbox')
+        options.add_argument('--user-data-dir=D:\\olx\\'+account)
+        #options.add_argument('--incognito')
+        #options.add_argument('--start-fullscreen')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('disable-infobars')
+        options.add_argument('--disable-gpu')
+        options.add_argument("--disable-blink-features")
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        #options.add_argument('--start-maximized')
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
 
-    # another way to set profile is the below (which takes precedence if both variants are used
-    options.add_argument('--no-sandbox')
-    options.add_argument('--user-data-dir=c:\\temp\\'+account)
-    #options.add_argument('--incognito')
-    #options.add_argument('--start-fullscreen')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('disable-infobars')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--disable-blink-features=AutomationControlled')
-    #options.add_argument('--start-maximized')
-    options.add_experimental_option("excludeSwitches", ["enable-automation","enable-logging"])
-    options.add_experimental_option('useAutomationExtension', False)
-    # just some options passing in to skip annoying popups
-    options.add_argument('--no-first-run --no-service-autorun --password-store=basic')   
-    print('<==='+account+' membuka program chrome ===>') 
-    if __name__ == "__main__":  
+        # just some options passing in to skip annoying popups
+        options.add_argument('--no-first-run --no-service-autorun --password-store=basic')   
         driver = webdriver.Chrome(options=options)
-        driver.set_window_size(800, 600)
-        #driver.minimize_window()
-        action = ActionChains(driver)
+    except:
+        print('terjadi kesalahan pada akun '+account)
+    driver.minimize_window()
+    #driver.switch_to.new_window('window')
+    action = ActionChains(driver)
+    #driver.set_window_size(800, 600)
+    driver.maximize_window()
+    stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win64",
+        webgl_vendor="NVIDIA.",
+        renderer="AMD Iris OpenGL Engine",
+        fix_hairline=True,
+    )
 
-        with driver:
-            
-            #open olx homepage
-            print('membuka halaman utama olx')
-            try:
-                driver.get('https://www.olx.co.id')
-            except:
-                driver.get('https://www.olx.co.id')
-            
-            # check login
-            try:
-                driver.implicitly_wait(5)
-                p = driver.find_element(By.XPATH,'//*[@data-aut-id="iconProfile"]')
-                print('sudah login')
-                grabUrl = False
-            except:
-                print('mencoba login')
-                doLogin(account)
-            
-            # check login again [its already login, if its not then quit driver]
-            try:
-                driver.implicitly_wait(20)
-                p = driver.find_element(By.XPATH,'//*[@data-aut-id="iconProfile"]')
-                print('berhasil login')
-            except:
-                print('gagal login'+account)
-                grabUrl = False
-                programError = True
-            
-            #define url sample
-            if grabUrl==True:
-                urlSample = 'https://www.olx.co.id/item/dijual-ruko-salmon-golden-city-bengkong-laut-ruko-golden-prawn-iid-879809681'
-                driver.get(urlSample)
-                print('mencoba mengambil data nomor')
-                getUrl(urlSample)
-            if programError==False:
-                #delete account
-                sendDelete(account)
-                print('valid: '+account)
-            else:
-                print('invalid '+account)
-            print('menutup program')
-            driver.quit()
-            print('program tertutup')
-            print('menunggu 20 detik sebelum program selanjutnya berjalan\n\n')
-            time.sleep(20)
+    print('<==='+account+' membuka program chrome ===>') 
+    
+    with driver:
+        #open olx homepage
+        print('membuka halaman utama olx')
+        try:
+            driver.get('https://www.olx.co.id')
+        except:
+            driver.get('https://www.olx.co.id')
+        
+        # check login
+        try:
+            driver.implicitly_wait(5)
+            p = driver.find_element(By.XPATH,'//*[@data-aut-id="iconProfile"]')
+            print('sudah login')
+            grabUrl = False
+        except:
+            print('mencoba login')
+            doLogin(account)
+        
+        # check login again [its already login, if its not then quit driver]
+        try:
+            driver.implicitly_wait(20)
+            p = driver.find_element(By.XPATH,'//*[@data-aut-id="iconProfile"]')
+            print('berhasil login')
+        except:
+            print('gagal login'+account)
+            grabUrl = False
+            programError = True
+        
+        #define url sample
+        if grabUrl==True:
+            urlSample = 'https://www.olx.co.id/item/dijual-ruko-salmon-golden-city-bengkong-laut-ruko-golden-prawn-iid-879809681'
+            driver.get(urlSample)
+            print('mencoba mengambil data nomor')
+            getUrl(urlSample)
+        if programError==False:
+            #delete account
+            sendDelete(account)
+            print('valid: '+account)
+        else:
+            print('invalid '+account)
+        print('menutup program')
+        driver.quit()
+        print('program tertutup')
+        print('menunggu 20 detik sebelum program selanjutnya berjalan\n\n')
+        time.sleep(20)
             
 print('program telah selesai, tertutup dalam 2 menit')
 time.sleep(120)

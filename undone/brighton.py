@@ -116,6 +116,22 @@ def goLogin(email,password):
         except:
             print('confirm button tidak di temukan')                
 
+def checkLogin():
+    driver.get('https://www.brighton.co.id/visitor/')
+    elem = "//h1[@class,'text-greet-visitor']"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH)))
+    except:
+        print('kesalahan webdriver check login')
+    else:
+        try:
+            login = driver.find_element(By.XPATH,elem)
+            print('kamu sudah login')
+            return True
+        except:
+            print('kamu belum login')
+    return False
+
 filePath = getPath()
 slashDir = getSlashDir()
 arrPhone = []
@@ -152,8 +168,12 @@ if __name__ == "__main__":
     with driver:
         #buka home brighton
         driver.get('https://www.brighton.co.id/')
-        #do login
         goLogin(email,password)
+        #do login
+        login = checkLogin()
+        if login==False:
+            goLogin(email,password)
+            
         time.sleep(3)
         #render number
         while page <= max:

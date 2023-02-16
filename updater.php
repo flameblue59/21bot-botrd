@@ -813,7 +813,7 @@ else if($version=="1.0.9"){
 	$process->execute();
 	$process->close();
 	//inserting current page
-	$sql = "INSERT INTO settings(type,value) VALUES('brightonCurrent',0)";
+	$sql = "INSERT INTO settings(type,value) VALUES('brightonCurrent',1)";
 	$process = $conn->prepare($sql);
 	$process->execute();
 	$process->close();	
@@ -939,6 +939,19 @@ else if($version=="1.0.9"){
 	$process->execute();
 	$process->close();	
 	$version = "1.0.10";
+}
+else if($version=="1.0.10"){
+	//add server
+	$sql = "ALTER TABLE twitter_account ADD COLUMN server INT(11) NOT NULL DEFAULT 1 after password";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'alter table twitter_account';
+	}
+	//add server
+	$sql = "ALTER TABLE instagram_account ADD COLUMN server INT(11) NOT NULL DEFAULT 1 after password";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'alter table instagram_account';
+	}	
+	$version = "1.0.11";
 }
 
 if(count($arrError) > 0){

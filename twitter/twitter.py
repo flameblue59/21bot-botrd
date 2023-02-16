@@ -50,7 +50,7 @@ def sendActivity(email,type,activityId):
     myConn.mydb.commit()
     #delete activity
     mycursor = myConn.mydb.cursor()
-    sql = "DELETE FROM twitter_account WHERE id=%s"
+    sql = "DELETE FROM twitter_activity WHERE id=%s"
     val = [activityId]
     mycursor.execute(sql,val)
     myConn.mydb.commit()
@@ -168,8 +168,10 @@ def doRetweet():
         try:
             confirmRetweet = driver.find_element(By.XPATH,elem)
             tool.customClick(driver,confirmRetweet)
+            return True
         except Exception as e:
-            print('tidak dapat menemukan confirm retweet')       
+            print('tidak dapat menemukan confirm retweet')     
+    return False  
 
 def randomActivity(driver):
     activity = random.randint(2,4)

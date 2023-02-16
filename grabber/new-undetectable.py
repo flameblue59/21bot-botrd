@@ -7,7 +7,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException 
 from selenium.webdriver.common.action_chains import ActionChains
 from retry import retry
-from timeout_decorator import timeout, TimeoutError
 import time
 import random
 import sys
@@ -17,8 +16,6 @@ import pyautogui
 def set_page_load_timeout(self, time_to_wait):
     driver.refresh()
 
-@retry(TimeoutError, tries=3)
-@timeout(30)
 def get_with_retry(driver, url):
     driver.get(url)
 
@@ -106,10 +103,10 @@ getInit()
 options = uc.ChromeOptions()
 
 # setting profile
-options.user_data_dir = "c:\\temp\\profile"
+options.user_data_dir = "D:\\olx\\profile"
 
 # another way to set profile is the below (which takes precedence if both variants are used
-options.add_argument('--user-data-dir=c:\\temp\\'+userEmail)
+options.add_argument('--user-data-dir=D:\\olx\\'+userEmail)
 #options.add_argument('--start-maximized')
 
 # just some options passing in to skip annoying popups

@@ -152,11 +152,11 @@ for account in accountList:
     options = webdriver.ChromeOptions()
 
     # setting profile
-    options.user_data_dir = "c:\\temp\\profile"
+    options.user_data_dir = "D:\\olx\\profile"
 
     # another way to set profile is the below (which takes precedence if both variants are used
     options.add_argument('--no-sandbox')
-    options.add_argument('--user-data-dir=c:\\temp\\'+account)
+    options.add_argument('--user-data-dir=D:\\olx\\'+account)
     #options.add_argument('--incognito')
     #options.add_argument('--start-fullscreen')
     options.add_argument('--disable-dev-shm-usage')

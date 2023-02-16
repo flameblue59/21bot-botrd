@@ -36,7 +36,7 @@ def superGet(url):
 def getAccount():
     email = sys.argv[1]
     mycursor = myConn.mydb.cursor(dictionary=True)
-    sql = "SELECT email,password FROM instagram_account WHERE email=%s ORDER BY nextRun ASC"
+    sql = "SELECT email,password FROM twitter_account WHERE email=%s ORDER BY nextRun ASC"
     val = [email]
     mycursor.execute(sql,val)
     result = mycursor.fetchall()
@@ -62,7 +62,7 @@ options.user_data_dir = filePath
 prefs = {"profile.default_content_setting_values.notifications" : 2}
 # another way to set profile is the below (which takes precedence if both variants are used
 options.add_argument('--no-sandbox')
-options.add_argument('--user-data-dir='+filePath+'chromeprofile'+slashDir+'instagram'+slashDir+email)
+options.add_argument('--user-data-dir='+filePath+'chromeprofile'+slashDir+'twitter'+slashDir+email)
 #options.add_argument('--incognito')
 #options.add_argument('--start-fullscreen')
 options.add_argument('--disable-dev-shm-usage')
@@ -91,6 +91,6 @@ if __name__ == "__main__":
 
     with driver:
             
-        tool.superGet(driver,'https://instagram.com')
+        tool.superGet(driver,'https://twitter.com')
         
         time.sleep(1800)

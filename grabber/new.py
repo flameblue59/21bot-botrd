@@ -174,10 +174,10 @@ bundleUrl()
 options = webdriver.ChromeOptions()
 
 # setting profile
-options.user_data_dir = "c:\\temp\\profile"
+options.user_data_dir = "D:\\olx\\profile"
 
 # another way to set profile is the below (which takes precedence if both variants are used
-options.add_argument('--user-data-dir=c:\\temp\\'+userEmail)
+options.add_argument('--user-data-dir=D:\\olx\\'+userEmail)
 options.add_argument('--start-maximized')
 #options.add_argument('--incognito')
 #options.add_argument('--start-fullscreen')
@@ -189,8 +189,7 @@ options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 # just some options passing in to skip annoying popups
 options.add_argument('--no-first-run --no-service-autorun --password-store=basic')
-chromeDriver = Service("C:\\XAMPP\\htdocs\\botrd\\grabber\\chromedriver.exe")
-driver = webdriver.Chrome(service=chromeDriver,options=options)
+driver = webdriver.Chrome(options=options)
 action = ActionChains(driver)
 stealth(driver,
         languages=["en-US", "en"],

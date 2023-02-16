@@ -36,6 +36,29 @@ def getSlashDir():
     result = mycursor.fetchall()
     return result[0]['value']
 
+def getCurrentPage():
+    myCursor = mydb.cursor(dictionary=True)
+    sql = "SELECT value FROM settings WHERE type='brightonCurrent'"
+    myCursor.execute(sql)
+    result = myCursor.fetchall()
+    return result[0]['value']
+
+def updateCurentPage(page):
+    #get max page
+    myCursor = mydb.cursor(dictionary=True,buffered=True)
+    sql = "SELECT value FROM settings WHERE type='brightonMax'"
+    myCursor.execute(sql);
+    result = myCursor.fetchall()
+    maxPage = int(result[0]['value'])
+    #update page
+    if page > maxPage:
+        page = 1
+    myCursor = mydb.cursor(dictionary=True,buffered=True)
+    val = [page]
+    sql = "UPDATE settings SET value=%s WHERE type='brightonCurrent'"
+    myCursor.execute(sql,val)
+    mydb.commit()
+
 def getAccount(site):
     mycursor = mydb.cursor(dictionary=True)
     sql = "SELECT email,password FROM property_account WHERE site=%s and active=1 ORDER BY lastSync ASC"
@@ -67,6 +90,7 @@ def goLogin(email,password):
             print('menu tidak di temukan')
             
     #click profil
+    time.sleep(3)
     elem = "//div[@class='wrapper-login']"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
@@ -80,6 +104,7 @@ def goLogin(email,password):
             print('profile tidak di temukan')
             
     #send email
+    time.sleep(2)
     elem = "//div[@id='formLoginPublicMemberMob']//input[@name='Username']"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
@@ -131,12 +156,29 @@ def goLogin(email,password):
         except:
             print('confirm button tidak di temukan')                
 
+def checkLogin():
+    driver.get('https://www.brighton.co.id/visitor/')
+    time.sleep(2)
+    elem = "//h1[@class='text-greet-visitor']"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('kesalahan webdriver check login')
+    else:
+        try:
+            login = driver.find_element(By.XPATH,elem)
+            print('kamu sudah login')
+            return True
+        except:
+            print('kamu belum login')
+    return False
+
 filePath = getPath()
 slashDir = getSlashDir()
 arrPhone = []
-page = 1
-max = 10
-site = 'brighton.com'
+page = int(getCurrentPage())
+max = 10+page
+site = 'brighton.co.id'
 
 email,password = getAccount(site)
 
@@ -169,11 +211,14 @@ if __name__ == "__main__":
     with driver:
         #buka home brighton
         driver.get('https://www.brighton.co.id/')
-        #do login
-        goLogin(email,password)
+        goLogin(email,password)     
+        #check login
+        login = checkLogin()
+        if login==False:
+            goLogin(email,password)
         time.sleep(3)
         #render number
-        while page <= max:
+        while page < max:
             if page==1:
                 driver.get('https://www.brighton.co.id/dijual/')
             else:
@@ -196,7 +241,8 @@ if __name__ == "__main__":
             #increase page
             page += 1
             time.sleep(1)
-            
+        
+        updateCurentPage(page)
         objJson = json.dumps(arrPhone)
         print('done=>'+objJson)
         driver.quit();
