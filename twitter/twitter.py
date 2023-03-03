@@ -77,8 +77,11 @@ def runActivity(activity,activityId):
     elif activity=='unfollow':
         status = main.doUnfollow(driver)
     elif activity=='tweet':
+        #randomize between image and video
+        media = ['image','video']
+        mediaType = random.choice(media)        
         statusText = tool.getStatus('thesimlife','id') 
-        status = doTweet(statusText)
+        status = doTweet(mediaType,statusText)
     elif activity=='retweet':
         status = doRetweet()
     elif activity=='comment':
@@ -90,9 +93,14 @@ def runActivity(activity,activityId):
     
     return status
 
-def doTweet(statusText):
-    #setup image
-    imagePath,filename = tool.getPhoto(email,'thesimlife')
+def doTweet(mediaType,statusText):
+    if mediaType=='image':
+        #setup image
+        imagePath,filename = tool.getPhoto(email,'thesimlifeImage')
+    elif mediaType=='video':
+        #setup video
+        imagePath,filename = tool.getVideo(email,'thesimlifeVideo')
+        
     #send status
     elem = "//div[@class='public-DraftStyleDefault-block public-DraftStyleDefault-ltr']"
     try:
@@ -121,9 +129,25 @@ def doTweet(statusText):
         except Exception as e:
             print('tidak dapat menemukan input upload image'+str(e))
             return False
-            
-    #next button [wait for uploading]
-    time.sleep(tool.randomNumber(8))
+        
+    #when it is video, we need to wait up to 20 seconds since we have not set the callback
+    #span[contains(text(),\'Uploaded')])
+    if mediaType=='video':
+        elem = "//span[contains(text(),\'Uploaded')]"
+        try:
+            WebDriverWait(driver,60).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+        except:
+            print('kesalahan saat upload, sudah lebih dari 60 detik')
+            return False
+        else:
+            try:
+                print('berhasil melakukan upload video')
+            except Exception as e:
+                print('gagal melakukan upload')
+                return False        
+    #next button [wait for uploading image]
+    elif mediaType=='image':
+        time.sleep(tool.randomNumber(8))
     elem = "//div[@data-testid='toolBar']//span[contains(text(),\'Tweet')]"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
@@ -134,6 +158,13 @@ def doTweet(statusText):
         try:
             nextButton = driver.find_element(By.XPATH,elem)
             tool.customClick(driver,nextButton)
+            #send posted image to server [so it wont posted anymore]
+            mycursor = myConn.mydb.cursor(dictionary=True)
+            sql = "INSERT INTO posted_twitter(email,mediaType,filename) VALUES(%s,%s,%s)"
+            val = [email,mediaType,filename]
+            mycursor.execute(sql,val)
+            myConn.mydb.commit()
+            print('berhasil memosting')            
             return True
         except Exception as e:
             print('tidak dapat menemukan next button [next]'+str(e))   

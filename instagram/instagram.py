@@ -72,8 +72,13 @@ def runActivity(activity,activityId):
     elif activity=='unfollow':
         status = main.doUnfollow(driver)
     elif activity=='post':
+        #randomize between image and video
+        media = ['image','video']
+        mediaType = random.choice(media)
+        #get status text
         statusText = tool.getStatus('thesimlife','id') 
-        status = doPost(statusText)
+        #we are going to do posting
+        status = doPost(mediaType,statusText)
     elif activity=='comment':
         commentText = tool.getComment('general','id')
         status = doComment(commentText) 
@@ -83,9 +88,12 @@ def runActivity(activity,activityId):
     
     return status
 
-def doPost(statusText):
+def doPost(mediaType,statusText):
     #setup image
-    imagePath,filename = tool.getPhoto(email,'thesimlife')
+    if mediaType=='image':
+        mediaPath,filename = tool.getPhoto(email,'thesimlifeImage')
+    elif mediaType=='video':
+        mediaPath,filename = tool.getVideo(email,'thesimlifeVideo')
     found = False
     #click new post button [version1]
     if found==False:
@@ -131,11 +139,43 @@ def doPost(statusText):
     else:
         try:
             newPost = driver.find_element(By.XPATH,elem)
-            newPost.send_keys(imagePath)
+            newPost.send_keys(mediaPath)
         except Exception as e:
             print('tidak dapat menemukan input upload image'+str(e))
             return False
-            
+        
+    #click on the video style
+    time.sleep(tool.randomNumber(2))
+    elem = "//div[@role='dialog']//div[@role='button']/button[@type='button']"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('kesalahan webdriver video style')
+        return False
+    else:
+        try:
+            videoStyle = driver.find_elements(By.XPATH,elem)
+            tool.customClick(driver,videoStyle[0])
+        except Exception as e:
+            print('tidak menemukan video style button'+str(e))
+            return False
+    
+    #click media ratio
+    time.sleep(tool.randomNumber(2))
+    elem = "//div[@role='dialog']//div[contains(text(),\'Original')]"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('kesalahan webdriver media ratio Original')
+        return False
+    else:
+        try:
+            mediaRatio = driver.find_element(By.XPATH,elem)
+            tool.customClick(driver,mediaRatio)
+        except Exception as e:
+            print('tidak menemukan video media ratio Original'+str(e))
+            return False    
+    
     #next button
     time.sleep(tool.randomNumber(4))
     elem = "//div[@role='dialog']//button[contains(text(),\'Next')]"
@@ -212,11 +252,25 @@ def doPost(statusText):
         try:
             shareButton = driver.find_element(By.XPATH,elem)
             tool.customClick(driver,shareButton)
-            time.sleep(tool.randomNumber(8))
+            #waiting for upload if it is video
+            if mediaType=='video':
+                elem = "//div[contains(text(),\'Reel shared')]"
+                try:
+                    WebDriverWait(driver,60).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+                except:
+                    print('kesalahan saat upload, sudah lebih dari 60 detik')
+                else:
+                    try:
+                        print('berhasil melakukan upload video')
+                    except Exception as e:
+                        print('gagal melakukan upload') 
+                        return False
+            elif mediaType=='image':            
+                time.sleep(tool.randomNumber(8))
             #send posted image to server [so it wont posted anymore]
             mycursor = myConn.mydb.cursor(dictionary=True)
-            sql = "INSERT INTO posted_instagram_image(email,filename) VALUES(%s,%s)"
-            val = [email,filename]
+            sql = "INSERT INTO posted_instagram(email,mediaType,filename) VALUES(%s,%s,%s)"
+            val = [email,mediaType,filename]
             mycursor.execute(sql,val)
             myConn.mydb.commit()
             print('berhasil memosting')

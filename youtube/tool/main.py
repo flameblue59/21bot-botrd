@@ -21,7 +21,7 @@ class tool:
         listImage = os.listdir(dir)
         #check for uniqueness
         mycursor = myConn.mydb.cursor(dictionary=True)
-        sql = "SELECT filename FROM posted_twitter_image WHERE email=%s"
+        sql = "SELECT filename FROM posted_twitter WHERE email=%s and mediaType='image'"
         val = [email]
         mycursor.execute(sql,val)
         result = mycursor.fetchall()

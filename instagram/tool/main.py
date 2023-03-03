@@ -21,7 +21,7 @@ class tool:
         listImage = os.listdir(dir)
         #check for uniqueness
         mycursor = myConn.mydb.cursor(dictionary=True)
-        sql = "SELECT filename FROM posted_instagram_image WHERE email=%s"
+        sql = "SELECT filename FROM posted_instagram WHERE email=%s and mediaType='image'"
         val = [email]
         mycursor.execute(sql,val)
         result = mycursor.fetchall()
@@ -31,6 +31,22 @@ class tool:
         rand = random.randint(0,sum)
         filename = listImage[rand]
         return dir+''+filename,filename     
+    def getVideo(email,path):
+        #randomize video
+        dir = tool.instagramPath(path)
+        listVideo = os.listdir(dir)
+        #check for uniqueness
+        mycursor = myConn.mydb.cursor(dictionary=True)
+        sql = "SELECT filename FROM posted_instagram WHERE email=%s and mediaType='video'"
+        val = [email]
+        mycursor.execute(sql,val)
+        result = mycursor.fetchall()
+        for row in result:
+            listVideo.remove(row['filename'])
+        sum = len(listVideo)-1
+        rand = random.randint(0,sum)
+        filename = listVideo[rand]
+        return dir+''+filename,filename 
     def getStatus(category,language):
         mycursor = myConn.mydb.cursor(dictionary=True)
         sql = "SELECT text FROM instagram_status WHERE category=%s and language=%s ORDER BY RAND()"

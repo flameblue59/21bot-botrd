@@ -941,17 +941,65 @@ else if($version=="1.0.9"){
 	$version = "1.0.10";
 }
 else if($version=="1.0.10"){
-	//add server
+	//add twitter_account
 	$sql = "ALTER TABLE twitter_account ADD COLUMN server INT(11) NOT NULL DEFAULT 1 after password";
 	if(!$process=$conn->query($sql)){
 		$arrError[] = 'alter table twitter_account';
 	}
-	//add server
+	//add instagram_account
 	$sql = "ALTER TABLE instagram_account ADD COLUMN server INT(11) NOT NULL DEFAULT 1 after password";
 	if(!$process=$conn->query($sql)){
 		$arrError[] = 'alter table instagram_account';
-	}	
+	}
 	$version = "1.0.11";
+}
+else if($version=="1.0.11"){
+	//add facebook_group table
+	//where we can arrange which group would be set while inviting
+	$sql = "CREATE TABLE facebook_group(
+		id INT(11) AUTO_INCREMENT PRIMARY KEY,
+		groupName VARCHAR(255) NOT NULL DEFAULT '',
+		groupId VARCHAR(50) NOT NULL DEFAULT '',
+		server INT(11) NOT NULL DEFAULT 0,
+		waktu DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP()
+	)";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'alter table facebook_group';
+	}
+	//add facebook_fanpage table
+	//where we can arrange which fanpage would be set while inviting
+	$sql = "CREATE TABLE facebook_fanpage(
+		id INT(11) AUTO_INCREMENT PRIMARY KEY,
+		fanpageName VARCHAR(255) NOT NULL DEFAULT '',
+		fanpageId VARCHAR(50) NOT NULL DEFAULT '',
+		server INT(11) NOT NULL DEFAULT 0,
+		waktu DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP()
+	)";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'alter table facebook_fanpage';
+	}
+	$version = "1.0.12";
+}
+else if($version=="1.0.12"){
+	//rename posted_instagram_image to posted_instagram
+	$sql = "RENAME TABLE posted_instagram_image TO posted_instagram";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'gagal alter table posted_instagram';
+	}		
+	$sql = "ALTER TABLE posted_instagram ADD COLUMN mediaType VARCHAR(50) NOT NULL DEFAULT 'image' after email";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'gagal alter table posted_instagram';
+	}	
+	//rename posted_twitter_image to posted_twitter
+	$sql = "RENAME TABLE posted_twitter_image TO posted_twitter";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'gagal alter table posted_twitter';
+	}		
+	$sql = "ALTER TABLE posted_twitter ADD COLUMN mediaType VARCHAR(50) NOT NULL DEFAULT 'image' after email";
+	if(!$process=$conn->query($sql)){
+		$arrError[] = 'gagal alter table posted_twitter';
+	}		
+	$version = "1.0.13";
 }
 
 if(count($arrError) > 0){

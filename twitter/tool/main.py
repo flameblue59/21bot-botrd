@@ -21,7 +21,7 @@ class tool:
         listImage = os.listdir(dir)
         #check for uniqueness
         mycursor = myConn.mydb.cursor(dictionary=True)
-        sql = "SELECT filename FROM posted_twitter_image WHERE email=%s"
+        sql = "SELECT filename FROM posted_twitter WHERE email=%s and mediaType='image'"
         val = [email]
         mycursor.execute(sql,val)
         result = mycursor.fetchall()
@@ -30,7 +30,23 @@ class tool:
         sum = len(listImage)-1
         rand = random.randint(0,sum)
         filename = listImage[rand]
-        return dir+''+filename,filename     
+        return dir+''+filename,filename    
+    def getVideo(email,path):
+        #randomize video
+        dir = tool.twitterPath(path)
+        listVideo = os.listdir(dir)
+        #check for uniqueness
+        mycursor = myConn.mydb.cursor(dictionary=True)
+        sql = "SELECT filename FROM posted_twitter WHERE email=%s and mediaType='video'"
+        val = [email]
+        mycursor.execute(sql,val)
+        result = mycursor.fetchall()
+        for row in result:
+            listVideo.remove(row['filename'])
+        sum = len(listVideo)-1
+        rand = random.randint(0,sum)
+        filename = listVideo[rand]
+        return dir+''+filename,filename      
     def getStatus(category,language):
         mycursor = myConn.mydb.cursor(dictionary=True)
         sql = "SELECT text FROM input_status WHERE category=%s and language=%s ORDER BY RAND()"

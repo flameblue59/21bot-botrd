@@ -351,7 +351,7 @@ def sendActivity(email,type,activityId,amount):
     
 def getActivity(email):
     mycursor = myConn.mydb.cursor(dictionary=True)
-    sql = "SELECT id,activity FROM facebook_activity WHERE done=0 and runAt < NOW() and email=%s ORDER BY runAt ASC"
+    sql = "SELECT id,activity FROM facebook_activity WHERE done=0 and runAt < NOW() and email=%s ORDER BY runAt ASC LIMIT 5"
     val = [email]
     mycursor.execute(sql,val)
     result = mycursor.fetchall()
@@ -413,13 +413,13 @@ def runActivity(activity,activityId):
     return status
 
 def randomActivity(driver):
-    activity = random.randint(2,4)
+    activity = random.randint(1,2)
     while activity > 0:
         try:
             walk = random.randint(0,100)
-            if walk > 70:
+            if walk > 90:
                 profileWalk()
-                time.sleep(fbtool.randomNumber(10))
+                time.sleep(fbtool.randomNumber(5))
             fbtool.scrollDown(driver)
             time.sleep(fbtool.randomNumber(4))
             activity -= 1

@@ -127,10 +127,28 @@ def doUnfollow(driver):
         scroll -= 1
         tool.scrollFollowingDown(driver)
     
+    #define default follow
+    totalFollow = 0;
+    #get total following
+    elem = "//a[contains(@href,\'following')]/div/span/span"
+    try:
+        WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
+    except:
+        print('kesalahan web driver unfollow box')
+        return False
+    else:
+        try:
+            unfollowBox = driver.find_element(By.XPATH,elem)
+            totalFollow = unfollowBox.text.replace(',','')
+            totalFollow = int(totalFollow)
+        except Exception as e:
+            print('tidak menemukan unfollow box')      
+            return False   
+    
     #click unfollow button [random]
     canUnfollow = False
     time.sleep(tool.randomNumber(4))
-    elem = "//div[@role='dialog']//div[contains(text(),\'Following')]"
+    elem = "//div[@role='dialog']//div[@role='dialog']//div[contains(text(),\'Following')]"
     try:
         WebDriverWait(driver,10).until(EC.presence_of_all_elements_located((By.XPATH,elem)))
     except:
@@ -139,8 +157,9 @@ def doUnfollow(driver):
     else:
         try:
             unfollowButton = driver.find_elements(By.XPATH,elem)
+            #define total unfollow button that we can random them
             sum = len(unfollowButton)-1
-            if sum > random.randint(300,500):
+            if totalFollow > random.randint(300,500):
                 rand = random.randint(0,sum)
                 tool.customClick(driver,unfollowButton[rand])
                 canUnfollow = True

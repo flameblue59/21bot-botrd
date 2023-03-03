@@ -1722,13 +1722,15 @@ class botFacebook{
 		Array $arrData = []
 	){
 		global $conn;
-		$likeInterval = 3;
-		$confirmFriendInterval = 3;
-		$groupInviteInterval = 10;
-		$profilePostInterval = 45;
-		$groupPostInterval = 45;
+		$addFriendInterval = 3;
+		$likeInterval = 2;
+		$confirmFriendInterval = 2;
+		$groupInviteInterval = 2;
+		$profilePostInterval = 30;
+		$groupPostInterval = 30;
 		$sql = "ALTER TABLE facebook_account 
 			CHANGE likeInterval likeInterval INT(11) NOT NULL DEFAULT $likeInterval,
+			CHANGE addFriendInterval addFriendInterval INT(11) NOT NULL DEFAULT $addFriendInterval,
 			CHANGE confirmFriendInterval confirmFriendInterval INT(11) NOT NULL DEFAULT $confirmFriendInterval,
 			CHANGE groupInviteInterval groupInviteInterval INT(11) NOT NULL DEFAULT $groupInviteInterval,
 			CHANGE profilePostInterval profilePostInterval INT(11) NOT NULL DEFAULT $profilePostInterval,
@@ -1736,9 +1738,9 @@ class botFacebook{
 		if(!$process=$conn->query($sql)){
 			$arrError[] = 'alter table facebook_account';
 		}	
-		$sql = "UPDATE facebook_account SET likeInterval=?,confirmFriendInterval=?,groupInviteInterval=?,profilePostInterval=?,groupPostInterval=?";
+		$sql = "UPDATE facebook_account SET likeInterval=?,addFriendInterval=?,confirmFriendInterval=?,groupInviteInterval=?,profilePostInterval=?,groupPostInterval=?";
 		$process = $conn->prepare($sql);
-		$process->bind_param('iiiii',$likeInterval,$confirmFriendInterval,$groupInviteInterval,$profilePostInterval,$groupPostInterval);
+		$process->bind_param('iiiiii',$likeInterval,$addFriendInterval,$confirmFriendInterval,$groupInviteInterval,$profilePostInterval,$groupPostInterval);
 		$process->execute();
 		$process->close();
 		return array('status'=>'success','notification'=>'set interval berhasil');
@@ -2109,6 +2111,32 @@ class botTwitter{
 		$process->close();
 		return array('status'=>'success','notification'=>'berhasil reset account Twitter');		
 	}
+	//set globals
+	function setInterval(
+		Array $arrData = []
+	){
+		global $conn;
+		$tweetInterval = 30;
+		$likesInterval = 3;
+		$commentInterval = 10;
+		$followInterval = 3;
+		$unfollowInterval = 3;
+		$sql = "ALTER TABLE twitter_account 
+			CHANGE tweetInterval tweetInterval INT(11) NOT NULL DEFAULT $tweetInterval,
+			CHANGE likesInterval likesInterval INT(11) NOT NULL DEFAULT $likesInterval,
+			CHANGE commentInterval commentInterval INT(11) NOT NULL DEFAULT $commentInterval,
+			CHANGE followInterval followInterval INT(11) NOT NULL DEFAULT $followInterval,
+			CHANGE unfollowInterval unfollowInterval INT(11) NOT NULL DEFAULT $unfollowInterval";
+		if(!$process=$conn->query($sql)){
+			$arrError[] = 'alter table twitter_account';
+		}	
+		$sql = "UPDATE twitter_account SET tweetInterval=?,likesInterval=?,commentInterval=?,followInterval=?,unfollowInterval=?";
+		$process = $conn->prepare($sql);
+		$process->bind_param('iiiii',$tweetInterval,$likesInterval,$commentInterval,$followInterval,$unfollowInterval);
+		$process->execute();
+		$process->close();
+		return array('status'=>'success','notification'=>'set interval berhasil');
+	}	
 }
 
 class botServer{
